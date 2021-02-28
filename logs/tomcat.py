@@ -6,14 +6,14 @@ from urllib.parse import parse_qs
 from ._logfile import _LogEvent, _LogSequence, _LogFile
 
 
-class TomcatEvent(_LogEvent):
+class WebserverEvent(_LogEvent):
     # Inherited methods:
     #     __init__(self, ip_addr, time, **kwargs)
     def __str__(self):
         return f'{self.method:4s} {self.request:27s} {self.response} {self.bytes:5d}'
 
 
-class TomcatSequence(_LogSequence):
+class WebserverSequence(_LogSequence):
     # Inherited variable:
     #     DELTA = timedelta(minutes=5)
     # Inherited methods:
@@ -46,7 +46,7 @@ class TomcatSequence(_LogSequence):
         return loops
 
 
-class TomcatLog(_LogFile):
+class WebserverLog(_LogFile):
     # Regex match groups:
     #     1: IP address
     #     2: Datetime as string

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-from parsers import ShibbolethLog, TomcatLog
+from parsers import ShibbolethLog, WebserverLog
 
 
 def help(args):
@@ -9,7 +9,7 @@ def help(args):
 
 
 def loops(args):
-    log = TomcatLog()
+    log = WebserverLog()
     for filename in args.filename:
         log.load(filename)
     log.command_loops()
