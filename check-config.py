@@ -23,6 +23,6 @@ if __name__ == '__main__':
     services_filename = str(config['shibboleth_root'] / 'conf/services.xml')
     services = ServicesConfig(config, [services_filename])
 
-    # resolver_files = services.stanzas['shibboleth.MetadataResolverResources']
-    # metadata = MetadataResolverConfig(config, resolver_files)
+    metadata = MetadataResolverConfig(config, services.get_files('metadata'))
+    print(f'Found {len(metadata.stanzas)} metadata stanzas')
     # metadata.check_files()

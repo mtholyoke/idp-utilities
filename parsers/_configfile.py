@@ -10,7 +10,9 @@ class _ConfigFile(object):
 
     XMLNS = {
         'beans': 'http://www.springframework.org/schema/beans',
+        'md': 'urn:mace:shibboleth:2.0:metadata',
         'util': 'http://www.springframework.org/schema/util',
+        'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
     }
 
     def __init__(self, config, filenames):
@@ -24,10 +26,14 @@ class _ConfigFile(object):
         root = tree.getroot()
         for child in root:
             id = child.attrib.get('id')
-            self.stanzas[id] = self.parse_stanza(child)
-            print(id)
-            for value in self.stanzas[id]:
-                print ('  - ' + str(value))
+            if id in self.stanzas:
+                raise ValueError(f'Duplicate id {id} in {filename}')
+            try:
+                stanza = self.parse_stanza(child)
+            except ValueError as ve:
+                raise RuntimeError(f'Can’t load {filename}) from ve')
+            else:
+                self.stanzas[id] = stanza
 
     def make_path(self, text):
         for prop in self.PATH_SUB.finditer(text):
@@ -35,3 +41,6 @@ class _ConfigFile(object):
             path = self.config['properties'][prop.group(1)]
             text = text.replace(stub, path)
         return Path(text)
+
+    def xmlns(self, ns, item):
+        return '{' + self.XMLNS[ns] + '}' + item

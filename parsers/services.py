@@ -4,6 +4,13 @@ from ._configfile import _ConfigFile
 
 
 class ServicesConfig(_ConfigFile):
+    ID_MAP = {
+        'metadata': 'shibboleth.MetadataResolverResources',
+    }
+
+    def get_files(self, index):
+        return self.stanzas[self.ID_MAP[index]]
+
     def parse_stanza(self, stanza):
         if stanza.tag != '{' + self.XMLNS['util'] + '}list':
             return []
