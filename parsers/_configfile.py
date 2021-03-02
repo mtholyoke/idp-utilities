@@ -5,8 +5,17 @@ import xml.etree.ElementTree as ET
 
 
 class _ConfigFile(object):
+    """
+    Abstract base class for XML configuration files.
+
+    Subclasses must implement method `parse_stanza()` to produce a
+    meaningful representation of the stanzas specific to that config file.
+    """
+
+    # Pattern to use for path substitution in method `make_path()`.
     PATH_SUB = re.compile(r'%\{(\w+(?:\.\w+)*)\}')
 
+    # Namespace URIs to use in parsing.
     XMLNS = {
         'beans': 'http://www.springframework.org/schema/beans',
         'md': 'urn:mace:shibboleth:2.0:metadata',
@@ -34,6 +43,7 @@ class _ConfigFile(object):
             else:
                 self.stanzas[id] = stanza
 
+    # Interpolate path substitutions allowed by config.
     def make_path(self, text):
         for prop in self.PATH_SUB.finditer(text):
             stub = '%{' + prop.group(1) + '}'
@@ -41,5 +51,6 @@ class _ConfigFile(object):
             text = text.replace(stub, path)
         return text
 
+    # Returns a string suitable for matching namespaced tags or attribs.
     def xmlns(self, ns, item):
         return '{' + self.XMLNS[ns] + '}' + item

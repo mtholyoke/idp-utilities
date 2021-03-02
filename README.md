@@ -1,12 +1,20 @@
 # IdP utility scripts
 
-## `check-metadata.py`
+You will need Python 3 and PyYAML installed.
 
-This script compares `conf/metadata-providers.xml` (plus a hard-coded list of IdP metadata files) with the contents of the `metadata/` directory to make sure all required files exist, and identify any extraneous metadata files.
+Before running the scripts, make a copy of `config-default.yml` named `config.yml` and edit any settings that need to be changed for your installation.
 
-Future plans include validating the `id` attributes in `conf/metadata-providers.xml` (they should match the metadata filenames themselves) and comparing EntityIDs from metadata with `conf/attribute-filter.xml`.
+## `check-config.py`
 
-Adding the InCommon bundle may complicate things.
+This script compares the contents of the metadata providers file(s) specified in `conf/services.xml` with the contents of the `metadata/` directory to make sure all required files exist, and identify any extraneous metadata files.
+
+- Filenames in `conf/services.xml` with `/system/` in their path are ignored.
+
+- Metadata files that exist as the result of a `FileBackedHTTPMetadataProvider` are not required.
+
+- Use the `metadata_require` and `metadata_ignore` keys in `config.yml` to modify the rules of which files are checked.
+
+Future plans include validating the `id` attributes in `conf/metadata-providers.xml` (they should match the metadata filenames themselves), comparing EntityIDs from metadata with `conf/attribute-filter.xml`, and a verbose output that includes more diagnostics and warnings.
 
 ## `logcheck.py`
 

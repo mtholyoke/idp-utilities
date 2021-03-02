@@ -4,6 +4,12 @@ from ._configfile import _ConfigFile
 
 
 class ServicesConfig(_ConfigFile):
+    """
+    This is a representation of `conf/services.xml`, which the IdP
+    uses to identify the names of other config files that it loads.
+    """
+
+    # Short forms of stanza ids for convenience elsewhere.
     ID_MAP = {
         'metadata': 'shibboleth.MetadataResolverResources',
     }
@@ -11,12 +17,13 @@ class ServicesConfig(_ConfigFile):
     def get_files(self, index):
         return self.stanzas[self.ID_MAP[index]]
 
+    # Returns a list of the contents of <value> elements.
     def parse_stanza(self, stanza):
-        if stanza.tag != '{' + self.XMLNS['util'] + '}list':
+        if stanza.tag != self.xmlns('util', 'list'):
             return []
         values = []
         for value in stanza:
-            if value.tag != '{' + self.XMLNS['beans'] + '}value':
+            if value.tag != self.xmlns('beans', 'value'):
                 continue
             text = value.text
             if '/system/' in text:

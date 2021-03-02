@@ -1,0 +1,25 @@
+---
+### Default configuration values for IdP utilities.
+###
+### Make a copy of this file named “config.yml”.
+### Uncomment an entry to change its value.
+
+### Root directory for finding Shibboleth IdP config and metadata.
+# shibboleth-root: /opt/shibboleth-idp
+
+### Path substitutions and other properties that we need values for.
+### `idp.home` defaults to the value of `shibboleth-root` above.
+### Other variables or nested substitutions are not allowed.
+# properties:
+#   idp.home: shibboleth-root
+
+### A list of metadata files that must always be present.
+### This should include the IdP’s metadata file, usually in
+### `conf/idp.properties` as `idp.entityID.metadataFile`.
+### Substitution for keys in `properties` above is allowed.
+### Use quotes if the string begins with a `%`.
+# metadata-require:
+#   - "%{idp.home}/metadata/idp-metadata.xml"
+
+### A list of metadata files not to report as extraneous. No defaults.
+# metadata-ignore:
