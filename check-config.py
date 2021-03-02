@@ -21,8 +21,8 @@ if __name__ == '__main__':
     if 'idp.home' not in config['properties']:
         config['properties']['idp.home'] = str(config['shibboleth_root'])
     services_filename = str(config['shibboleth_root'] / 'conf/services.xml')
-    services = ServicesConfig(config, services_filename)
+    services = ServicesConfig(config, [services_filename])
 
-    resolver_files = services.stanzas['shibboleth.MetadataResolverResources']
-    metadata = MetadataResolverConfig(config, resolver_files)
-    metadata.check_files()
+    # resolver_files = services.stanzas['shibboleth.MetadataResolverResources']
+    # metadata = MetadataResolverConfig(config, resolver_files)
+    # metadata.check_files()
