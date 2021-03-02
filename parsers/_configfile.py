@@ -17,8 +17,10 @@ class _ConfigFile(object):
 
     # Namespace URIs to use in parsing.
     XMLNS = {
+        'afp': 'urn:mace:shibboleth:2.0:afp',
         'beans': 'http://www.springframework.org/schema/beans',
         'md': 'urn:mace:shibboleth:2.0:metadata',
+        'resolver': 'urn:mace:shibboleth:2.0:resolver',
         'util': 'http://www.springframework.org/schema/util',
         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
     }
@@ -41,7 +43,8 @@ class _ConfigFile(object):
             except ValueError as ve:
                 raise RuntimeError(f'Can’t load {filename}') from ve
             else:
-                self.stanzas[id] = stanza
+                if stanza:
+                    self.stanzas[id] = stanza
 
     # Interpolate path substitutions allowed by config.
     def make_path(self, text):

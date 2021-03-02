@@ -11,7 +11,10 @@ class ServicesConfig(_ConfigFile):
 
     # Short forms of stanza ids for convenience elsewhere.
     ID_MAP = {
+        'attr-filter': 'shibboleth.AttributeFilterResources',
+        'attr-resolver': 'shibboleth.AttributeResolverResources',
         'metadata': 'shibboleth.MetadataResolverResources',
+        'nameid': 'shibboleth.NameIdentifierGenerationResources',
     }
 
     def get_files(self, index):

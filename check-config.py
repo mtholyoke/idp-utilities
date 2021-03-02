@@ -1,7 +1,12 @@
 #!/usr/bin/env python3
 
 from argparse import ArgumentParser
-from parsers import MetadataResolverConfig, ServicesConfig
+from parsers import (
+    AttributeFilterConfig,
+    AttributeResolverConfig,
+    MetadataResolverConfig,
+    ServicesConfig
+)
 from pathlib import Path
 import subprocess
 import yaml
@@ -49,3 +54,12 @@ if __name__ == '__main__':
 
     metadata = MetadataResolverConfig(config, services.get_files('metadata'))
     metadata.check_files()
+
+    attr_filter = AttributeFilterConfig(
+        config,
+        services.get_files('attr-filter'))
+    print([v for k, v in attr_filter.stanzas.items()])
+    attr_resolver = AttributeResolverConfig(
+        config,
+        services.get_files('attr-resolver'))
+    print([a for a in attr_resolver.stanzas])
