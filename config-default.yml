@@ -23,3 +23,6 @@
 
 ### A list of metadata files not to report as extraneous. No defaults.
 # metadata-ignore:
+
+### Path to xmllint. Set to false if it is not installed.
+# xmllint: /usr/bin/xmllint

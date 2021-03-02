@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 from parsers import MetadataResolverConfig, ServicesConfig
 from pathlib import Path
+import subprocess
 import yaml
 
 
@@ -16,7 +17,19 @@ def set_defaults(config={}):
         config['properties']['idp.home'] = str(config['shibboleth-root'])
     if 'metadata-require' not in config:
         config['metadata-require'] = ['%{idp.home}/metadata/idp-metadata.xml']
+    if 'xmllint' not in config:
+        config['xmllint'] = '/usr/bin/xmllint'
     return config
+
+
+def xmllint(config):
+    if not config['xmllint']:
+        return
+    for dir in ['conf', 'metadata']:
+        files = config['shibboleth-root'].glob(f'{dir}/**/*.xml')
+        for file in files:
+            result = subprocess.run([config['xmllint'], '--noout', file])
+            result.check_returncode()
 
 
 if __name__ == '__main__':
@@ -28,6 +41,8 @@ if __name__ == '__main__':
     args = ap.parse_args()
     config = yaml.safe_load(args.config)
     config = set_defaults(config)
+
+    xmllint(config)
 
     services_filename = str(config['shibboleth-root'] / 'conf/services.xml')
     services = ServicesConfig(config, [services_filename])

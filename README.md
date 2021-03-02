@@ -1,6 +1,8 @@
 # IdP utility scripts
 
-You will need Python 3 and PyYAML installed.
+Required: Python 3.5 or greater and PyYAML
+
+Recommended: `xmllint`
 
 Before running the scripts, make a copy of `config-default.yml` named `config.yml` and edit any settings that need to be changed for your installation.
 
@@ -13,6 +15,8 @@ This script compares the contents of the metadata providers file(s) specified in
 - Metadata files that exist as the result of a `FileBackedHTTPMetadataProvider` are not required.
 
 - Use the `metadata_require` and `metadata_ignore` keys in `config.yml` to modify the rules of which files are checked.
+
+- If you have `xmllint` installed, the script will validate all `.xml` files in `conf/` and `metadata/`.
 
 Future plans include validating the `id` attributes in `conf/metadata-providers.xml` (they should match the metadata filenames themselves), comparing EntityIDs from metadata with `conf/attribute-filter.xml`, and a verbose output that includes more diagnostics and warnings.
 
