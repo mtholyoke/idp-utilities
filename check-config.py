@@ -24,5 +24,4 @@ if __name__ == '__main__':
     services = ServicesConfig(config, [services_filename])
 
     metadata = MetadataResolverConfig(config, services.get_files('metadata'))
-    print(f'Found {len(metadata.stanzas)} metadata stanzas')
-    # metadata.check_files()
+    metadata.check_files()

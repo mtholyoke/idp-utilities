@@ -2,7 +2,6 @@
 
 import re
 import xml.etree.ElementTree as ET
-from pathlib import Path
 
 
 class _ConfigFile(object):
@@ -31,7 +30,7 @@ class _ConfigFile(object):
             try:
                 stanza = self.parse_stanza(child)
             except ValueError as ve:
-                raise RuntimeError(f'Can’t load {filename}) from ve')
+                raise RuntimeError(f'Can’t load {filename}') from ve
             else:
                 self.stanzas[id] = stanza
 
@@ -40,7 +39,7 @@ class _ConfigFile(object):
             stub = '%{' + prop.group(1) + '}'
             path = self.config['properties'][prop.group(1)]
             text = text.replace(stub, path)
-        return Path(text)
+        return text
 
     def xmlns(self, ns, item):
         return '{' + self.XMLNS[ns] + '}' + item
