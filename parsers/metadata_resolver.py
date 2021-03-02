@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from ._configfile import _ConfigFile
+import re
 
 
 class MetadataResolverConfig(_ConfigFile):
@@ -61,6 +62,9 @@ class MetadataResolverConfig(_ConfigFile):
         if stanza.tag != self.xmlns('md', 'MetadataProvider'):
             return None
         id = stanza.attrib.get('id')
+        char = re.search(r'([^\w-])', id)
+        if char:
+            raise ValueError(f'Invalid character "{char.group(1)}" in {id}')
         filename = None
         required = True
         xsi_type = stanza.attrib.get(self.xmlns('xsi', 'type'))
