@@ -9,6 +9,16 @@ class AttributeFilterConfig(_ConfigFile):
     to identify which attributes are being released.
     """
 
+    # Inverts stanza => attribute list mapping for queries.
+    def get_released(self):
+        release = {}
+        for id, attrs in self.stanzas.items():
+            for attr in attrs:
+                if attr not in release:
+                    release[attr] = []
+                release[attr].append(id)
+        return release
+
     # Returns a list of the attributes in <AttributeFilterPolicy> elements.
     def parse_stanza(self, stanza):
         if stanza.tag != self.xmlns('afp', 'AttributeFilterPolicy'):

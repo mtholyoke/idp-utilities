@@ -58,8 +58,14 @@ if __name__ == '__main__':
     attr_filter = AttributeFilterConfig(
         config,
         services.get_files('attr-filter'))
-    print([v for k, v in attr_filter.stanzas.items()])
+    released_attrs = attr_filter.get_released()
     attr_resolver = AttributeResolverConfig(
         config,
         services.get_files('attr-resolver'))
-    print([a for a in attr_resolver.stanzas])
+    for attr, ids in released_attrs.items():
+        if attr not in attr_resolver.stanzas:
+            print(f'ERROR: Unresolvable attribute {attr} used by {ids}')
+    print('All released attributes are resolvable')
+    for attr in attr_resolver.stanzas:
+        if attr not in released_attrs:
+            print(f'Attribute {attr} is resolvable but unused')

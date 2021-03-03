@@ -4,19 +4,23 @@ Required: Python 3.5 or greater and PyYAML
 
 Recommended: `xmllint`
 
-Before running the scripts, make a copy of `config-default.yml` named `config.yml` and edit any settings that need to be changed for your installation.
-
 ## `check-config.py`
 
-This script compares the contents of the metadata providers file(s) specified in `conf/services.xml` with the contents of the `metadata/` directory to make sure all required files exist, and identify any extraneous metadata files.
+Before running this script, make a copy of `config-default.yml` named `config.yml` and edit any settings that need to be changed for your installation.
 
-- Filenames in `conf/services.xml` with `/system/` in their path are ignored.
+This script runs three checks against the configuration files:
 
-- Metadata files that exist as the result of a `FileBackedHTTPMetadataProvider` are not required.
+**First**, if you have `xmllint` installed, the script will validate all `.xml` files in `conf/` and `metadata/`. Failure in any file raises an exception and halts the script.
+
+It then extracts three sets of files from `conf/services.xml`: metadata resolvers, attribute filters, and attribute resolvers. In all cases it excludes those with `/system/` in their path.
+
+**Second**, it compares the contents of the metadata providers file(s) with the contents of the `metadata/` directory to make sure all required files exist, and identify any extraneous metadata files.
+
+- Metadata files that exist as the result of a `FileBackedHTTPMetadataProvider` are checked if present but not required.
 
 - Use the `metadata_require` and `metadata_ignore` keys in `config.yml` to modify the rules of which files are checked.
 
-- If you have `xmllint` installed, the script will validate all `.xml` files in `conf/` and `metadata/`.
+**Third**, it compares the attributes called for in the attribute filters with those that are resolvable using the attribute resolvers to make sure all needed attributes are accounted for, and identify any that are resolvable but used.
 
 Future plans include validating the `id` attributes in `conf/metadata-providers.xml` (they should match the metadata filenames themselves), comparing EntityIDs from metadata with `conf/attribute-filter.xml`, and a verbose output that includes more diagnostics and warnings.
 
@@ -38,7 +42,7 @@ Wildcards are allowed, and filenames that end in `.gz` can be processed without 
 
 To get every SP that has used this IdP for authentication over the entire `logs/` directory:
 ```bash
-logcheck.py sp -f /opt/shibboleth-idp/logs/
+./logcheck.py sp -f /opt/shibboleth-idp/logs/idp-process*
 ```
 
 ### Options
