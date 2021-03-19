@@ -47,6 +47,11 @@ class ShibbolethLog(_LogFile):
         'org.opensaml.saml.common.binding.security.impl.MessageLifetimeSecurityHandler',
         'net.shibboleth.idp.ui.csrf.impl.CSRFTokenFlowExecutionListener',
         'org.opensaml.saml.common.binding.security.impl.ReceivedEndpointSecurityHandler',
+        'net.shibboleth.idp.session.impl.StorageBackedIdPSession',
+        'net.shibboleth.idp.session.impl.DetectIdentitySwitch',
+        'net.shibboleth.utilities.java.support.security.DataSealer',
+        'org.opensaml.saml.saml2.binding.decoding.impl.HTTPRedirectDeflateDecoder',
+        'org.opensaml.storage.impl.client.ClientStorageService',
         # These were on ion but not login:
         'org.opensaml.saml.metadata.resolver.impl.AbstractReloadingMetadataResolver',
         'net.shibboleth.utilities.java.support.security.BasicKeystoreKeyStrategy',
