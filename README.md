@@ -13,9 +13,12 @@ Example:
 utils/attributes.py -n jsmith -r https://sp.example.edu
 ```
 
-The notable differences from the Shibboleth-supplied script are that it uses the IdP’s hostname instead of `localhost` and it defaults to showing output in `saml2` format, to include the NameID.
+The notable differences from the Shibboleth-supplied script are its defaults:
 
-Other `-f` format options are `saml1` and `json`.
+- Use the IdP’s hostname instead of `localhost` – can be overridden in `config.yml`
+- Output in `saml2` format (including NameID, based on the SP’s metadata) — other `-f` format options are `saml1` and `json`.
+
+If you’re verifying attributes for a `DynamicHTTPMetadataProvider` or `FileBackedHTTPMetadataProvider`, you may need a local copy of its metadata.
 
 
 ## `check-config.py`
@@ -37,6 +40,7 @@ It then extracts three sets of files from `conf/services.xml`: metadata resolver
 **Third**, it compares the attributes called for in the attribute filters with those that are resolvable using the attribute resolvers to make sure all needed attributes are accounted for, and identify any that are resolvable but used.
 
 Future plans include validating the `id` attributes in `conf/metadata-providers.xml` (they should match the metadata filenames themselves), comparing EntityIDs from metadata with `conf/attribute-filter.xml`, and a verbose output that includes more diagnostics and warnings.
+
 
 ## `logcheck.py`
 

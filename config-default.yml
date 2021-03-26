@@ -26,3 +26,7 @@
 
 ### Path to xmllint. Set to false if it is not installed.
 # xmllint: /usr/bin/xmllint
+
+### Hostname for attribute resolution. Defaults to current host’s FQDN,
+### but `localhost` is allowed. SSL cert is not verified.
+# hostname: localhost
