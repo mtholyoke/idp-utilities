@@ -4,6 +4,20 @@ Required: Python 3.5 or greater and PyYAML
 
 Recommended: `xmllint`
 
+## `attributes.py`
+
+This script is a simplified version of `/bin/aacli.sh` to show what attributes would be returned if the given `-n` principal (user) authenticated for the given `-r` requester (service provider).
+
+Example:
+```bash
+utils/attributes.py -n jsmith -r https://sp.example.edu
+```
+
+The notable differences from the Shibboleth-supplied script are that it uses the IdP’s hostname instead of `localhost` and it defaults to showing output in `saml2` format, to include the NameID.
+
+Other `-f` format options are `saml1` and `json`.
+
+
 ## `check-config.py`
 
 Before running this script, make a copy of `config-default.yml` named `config.yml` and edit any settings that need to be changed for your installation.
