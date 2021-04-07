@@ -19,7 +19,9 @@ class _ConfigFile(object):
     XMLNS = {
         'afp': 'urn:mace:shibboleth:2.0:afp',
         'beans': 'http://www.springframework.org/schema/beans',
-        'md': 'urn:mace:shibboleth:2.0:metadata',
+        'ds': 'http://www.w3.org/2000/09/xmldsig#',
+        'md': 'urn:oasis:names:tc:SAML:2.0:metadata',
+        'metadata': 'urn:mace:shibboleth:2.0:metadata',
         'resolver': 'urn:mace:shibboleth:2.0:resolver',
         'util': 'http://www.springframework.org/schema/util',
         'xsi': 'http://www.w3.org/2001/XMLSchema-instance',

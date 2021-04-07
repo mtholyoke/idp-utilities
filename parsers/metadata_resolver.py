@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
+from . import MetadataConfig
 from ._configfile import _ConfigFile
+import cryptography
 import re
 
 
@@ -14,7 +16,7 @@ class MetadataResolverConfig(_ConfigFile):
     # of files expected by the metadata resolver config files, plus
     # anything required by `config.yml`.
     def check_files(self):
-        filenames = self.load_files()
+        files = self.load_files()
         missing = {}
 
         # Check for everything required by config.
@@ -23,15 +25,15 @@ class MetadataResolverConfig(_ConfigFile):
             required = [required]
         for i, idp in enumerate(required, start=1):
             check = self.make_path(idp)
-            if check in filenames:
-                filenames.remove(check)
+            if check in files:
+                del files[check]
             else:
-                missing[f'(metadata-require #{i})'] = {'provider': check}
+                missing[f'(metadata-require #{i})'] = {'filename': check}
 
         # Check for everything required by MetadataProvider stanzas.
         for id, stanza in self.stanzas.items():
-            if stanza['filename'] in filenames:
-                filenames.remove(stanza['filename'])
+            if stanza['filename'] in files:
+                del files[stanza['filename']]
             elif stanza['required']:
                 missing[id] = stanza
 
@@ -43,23 +45,26 @@ class MetadataResolverConfig(_ConfigFile):
             print('All required metadata files are present')
         for filename in self.config['metadata-ignore']:
             check = self.make_path(filename)
-            if check in filenames:
-                filenames.remove(check)
-        if filenames:
+            if check in files:
+                del files[check]
+        if files:
             print('Extra metadata files:')
-            for filename in filenames:
+            for filename, _ in files:
                 print(f'  - {filename}')
 
     # Returns a list of strings which are fully qualified filenames
     # from the IdP’s `metadata/` directory and all subdirectories.
     def load_files(self):
         metadata_dir = self.config['shibboleth-root'] / 'metadata'
-        return [str(f) for f in metadata_dir.glob('**/*.xml')]
+        files = {}
+        for filename in metadata_dir.glob('**/*.xml'):
+            files[str(filename)] = MetadataConfig(self.config, [filename])
+        return files
 
     # Returns a dict summarizing the requirement: what filename
     # we expect and whether we can allow it to be missing.
     def parse_stanza(self, stanza):
-        if stanza.tag != self.xmlns('md', 'MetadataProvider'):
+        if stanza.tag != self.xmlns('metadata', 'MetadataProvider'):
             return None
         id = stanza.attrib.get('id')
         char = re.search(r'([^\w-])', id)
