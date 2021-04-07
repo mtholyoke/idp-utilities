@@ -21,6 +21,8 @@ class MetadataResolverConfig(_ConfigFile):
 
         # Check expiration of metadata.
         for filename, metadata in files.items():
+            if filename in self.config['metadata-ignore']:
+                continue
             expiry = metadata.check_expiry()
             if (expiry):
                 print(filename)
@@ -57,7 +59,7 @@ class MetadataResolverConfig(_ConfigFile):
                 del files[check]
         if files:
             print('Extra metadata files:')
-            for filename, _ in files:
+            for filename, _ in files.items():
                 print(f'  - {filename}')
 
     # Returns a list of strings which are fully qualified filenames
