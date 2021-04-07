@@ -2,6 +2,7 @@
 
 from ._configfile import _ConfigFile
 from cryptography import x509
+from cryptography.hazmat.backends import default_backend
 from datetime import datetime, timedelta, timezone
 import base64
 import xml.etree.ElementTree as ET
@@ -61,7 +62,7 @@ class MetadataConfig(_ConfigFile):
         certs = []
         for x509cert in stanza.findall(f'.//{x509_tag}'):
             text = base64.standard_b64decode(x509cert.text)
-            certs.append(x509.load_der_x509_certificate(text))
+            certs.append(x509.load_der_x509_certificate(text, default_backend()))
         return {
             'valid_until': valid_until,
             'certs': certs,
