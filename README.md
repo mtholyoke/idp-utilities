@@ -1,8 +1,8 @@
 # IdP utility scripts
 
-Required: Python 3.5 or greater and PyYAML
+Required: Python 3.6 or greater with [PyYAML](https://pypi.org/project/PyYAML/) and [cryptography](https://pypi.org/project/cryptography/) installed.
 
-Recommended: `xmllint`
+Recommended: `xmllint`.
 
 ## `attributes.py`
 
@@ -32,6 +32,8 @@ This script runs three checks against the configuration files:
 It then extracts three sets of files from `conf/services.xml`: metadata resolvers, attribute filters, and attribute resolvers. In all cases it excludes those with `/system/` in their path.
 
 **Second**, it compares the contents of the metadata providers file(s) with the contents of the `metadata/` directory to make sure all required files exist, and identify any extraneous metadata files.
+
+- Metadata files are examined to make sure they have not exceeded their `validUntil` attribute (if they have one) and that any SSL certificates in the file have not expired.
 
 - Metadata files that exist as the result of a `FileBackedHTTPMetadataProvider` are checked if present but not required.
 

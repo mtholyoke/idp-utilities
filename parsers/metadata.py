@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
 from ._configfile import _ConfigFile
-import cryptography
+from cryptography import x509
+from datetime import datetime, timedelta, timezone
+import base64
 import xml.etree.ElementTree as ET
 
 
@@ -9,6 +11,31 @@ class MetadataConfig(_ConfigFile):
     """
     This is an individual metadata file.
     """
+
+    # Checks to make sure this metadata has not expired.
+    # Returns array of error strings (which may be empty).
+    def check_expiry(self):
+        now = datetime.now(tz=timezone.utc)
+        (entity_id, stanza), *_ = self.stanzas.items()
+        notes = []
+
+        valid_until = stanza['valid_until']
+        if valid_until:
+            if valid_until.endswith('Z'):
+                valid_until = valid_until[:-1]
+            file_expiry = datetime.fromisoformat(valid_until).astimezone(timezone.utc)
+            if file_expiry < now:
+                notes.append('ERROR: validUntil attribute has expired')
+            elif file_expiry < now + timedelta(weeks=1):
+                notes.append('WARNING: validUntil attribute will expire in the next week')
+        for i, cert in enumerate(stanza['certs'], start=1):
+            if cert.not_valid_before.astimezone(timezone.utc) > now:
+                notes.append(f'WARNING: Cert #{i} is not valid until {cert.not_valid_before} UTC')
+            if cert.not_valid_after.astimezone(timezone.utc) < now:
+                notes.append(f'WARNING: Cert #{i} is not valid after {cert.not_valid_after} UTC')
+            elif cert.not_valid_after.astimezone(timezone.utc) < now + timedelta(weeks=4):
+                notes.append(f'WARNING: Cert #{i} will not be valid after {cert.not_valid_after} UTC')
+        return notes
 
     # Overrides _ConfigFile.load_stanzas because we want to work with
     # the root element as a single stanza.
@@ -29,26 +56,14 @@ class MetadataConfig(_ConfigFile):
         if stanza.tag != self.xmlns('md', 'EntityDescriptor'):
             print(f'Unknown tag: {stanza.tag}')
             return None
+        valid_until = stanza.attrib.get('validUntil')
+        x509_tag = self.xmlns('ds', 'X509Certificate')
+        certs = []
+        for x509cert in stanza.findall(f'.//{x509_tag}'):
+            text = base64.standard_b64decode(x509cert.text)
+            certs.append(x509.load_der_x509_certificate(text))
         return {
+            'valid_until': valid_until,
+            'certs': certs,
             'tree': stanza,
         }
-        # id = stanza.attrib.get('id')
-        # char = re.search(r'([^\w-])', id)
-        # if char:
-        #     raise ValueError(f'Invalid character "{char.group(1)}" in {id}')
-        # filename = None
-        # required = True
-        # xsi_type = stanza.attrib.get(self.xmlns('xsi', 'type'))
-        # if xsi_type == 'FilesystemMetadataProvider':
-        #     filename = stanza.attrib.get('metadataFile')
-        # elif xsi_type == 'FileBackedHTTPMetadataProvider':
-        #     filename = stanza.attrib.get('backingFile')
-        #     required = False
-        # else:
-        #     raise ValueError(f'Can’t parse stanza with id {id}')
-        # if not filename:
-        #     raise ValueError(f'Can’t find filename in stanza with id {id}')
-        # return {
-        #     'filename': self.make_path(filename),
-        #     'required': required,
-        # }

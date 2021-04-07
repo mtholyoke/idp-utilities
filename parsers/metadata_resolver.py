@@ -19,6 +19,14 @@ class MetadataResolverConfig(_ConfigFile):
         files = self.load_files()
         missing = {}
 
+        # Check expiration of metadata.
+        for filename, metadata in files.items():
+            expiry = metadata.check_expiry()
+            if (expiry):
+                print(filename)
+                for note in expiry:
+                    print(f'- {note}')
+
         # Check for everything required by config.
         required = self.config['metadata-require']
         if isinstance(required, str):
