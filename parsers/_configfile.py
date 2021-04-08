@@ -28,7 +28,8 @@ class _ConfigFile(object):
     }
 
     def __init__(self, config, filenames):
-        self.config = self.translate_paths(config)
+        self.config = config
+        self.translate_config()
         self.stanzas = {}
         for filename in filenames:
             self.load_stanzas(filename)
@@ -56,16 +57,16 @@ class _ConfigFile(object):
             text = text.replace(stub, path)
         return text
 
-    # Amends config with fully qualified paths.
-    def translate_paths(self, config):
+    # Amends self.config with fully qualified paths and any other changes
+    # we need for smooth operation.
+    def translate_config(self):
         path_fields = ['metadata-require', 'metadata-ignore']
         for field in path_fields:
-            if config[field]:
-                paths = config[field]
+            if self.config[field]:
+                paths = self.config[field]
                 if isinstance(paths, str):
                     paths = [paths]
-                config[field] = [self.make_path(path) for path in paths]
-        return config
+                self.config[field] = [self.make_path(p) for p in paths]
 
     # Returns a string suitable for matching namespaced tags or attribs.
     def xmlns(self, ns, item):
