@@ -30,11 +30,7 @@ class MetadataResolverConfig(_ConfigFile):
                     print(f'- {note}')
 
         # Check for everything required by config.
-        required = self.config['metadata-require']
-        if isinstance(required, str):
-            required = [required]
-        for i, idp in enumerate(required, start=1):
-            check = self.make_path(idp)
+        for i, check in enumerate(self.config['metadata-require'], start=1):
             if check in files:
                 del files[check]
             else:
@@ -53,8 +49,7 @@ class MetadataResolverConfig(_ConfigFile):
                 print(f'ERROR: Missing {id} metadata file {s["filename"]}')
         else:
             print('All required metadata files are present')
-        for filename in self.config['metadata-ignore']:
-            check = self.make_path(filename)
+        for check in self.config['metadata-ignore']:
             if check in files:
                 del files[check]
         if files:
