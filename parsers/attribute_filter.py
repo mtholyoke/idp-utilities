@@ -8,6 +8,15 @@ class AttributeFilterConfig(_ConfigFile):
     This is a representation of `conf/attribute-filter.xml`, in order
     to identify which attributes are being released.
     """
+    # Inherited variables:
+    #     PATH_SUB = re.compile(...)
+    #     XMLNS = {...}
+    # Inherited methods:
+    #     __init__(self, config, filenames)
+    #     load_stanzas(self, filename)
+    #     make_path(self, text)
+    #     translate_config(self)
+    #     xmlns(self, ns, item)
 
     # Inverts stanza => attribute list mapping for queries.
     def get_released(self):

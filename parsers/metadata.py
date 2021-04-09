@@ -12,6 +12,14 @@ class MetadataConfig(_ConfigFile):
     """
     This is an individual metadata file.
     """
+    # Inherited variables:
+    #     PATH_SUB = re.compile(...)
+    #     XMLNS = {...}
+    # Inherited methods:
+    #     __init__(self, config, filenames)
+    #     make_path(self, text)
+    #     translate_config(self)
+    #     xmlns(self, ns, item)
 
     # Checks to make sure this metadata has not expired.
     # Returns array of error strings (which may be empty).
@@ -20,18 +28,18 @@ class MetadataConfig(_ConfigFile):
         (entity_id, stanza), *_ = self.stanzas.items()
         notes = []
 
-        valid_until = stanza['valid_until']
-        if valid_until:
-            if valid_until.endswith('Z'):
-                valid_until = valid_until[:-1]
-            file_expiry = datetime.fromisoformat(valid_until).astimezone(timezone.utc)
+        vu = stanza['valid_until']
+        if vu:
+            if vu.endswith('Z'):
+                vu = vu[:-1]
+            file_expiry = datetime.fromisoformat(vu).astimezone(timezone.utc)
             if file_expiry < now:
-                notes.append('ERROR: validUntil attribute has expired')
+                notes.append(f"ERROR: validUntil attribute expired {file_expiry.strftime('%Y-%m-%d %X UTC')}")
             elif file_expiry < now + timedelta(weeks=1):
-                notes.append('WARNING: validUntil attribute will expire in the next week')
+                notes.append(f"WARNING: validUntil attribute will expire {file_expiry.strftime('%Y-%m-%d %X UTC')}")
         for i, cert in enumerate(stanza['certs'], start=1):
             if cert.not_valid_before.astimezone(timezone.utc) > now:
-                notes.append(f'WARNING: Cert #{i} is not valid until {cert.not_valid_before} UTC')
+                notes.append(f'WARNING: Cert #{i} is not valid before {cert.not_valid_before} UTC')
             if cert.not_valid_after.astimezone(timezone.utc) < now:
                 notes.append(f'WARNING: Cert #{i} is not valid after {cert.not_valid_after} UTC')
             elif cert.not_valid_after.astimezone(timezone.utc) < now + timedelta(weeks=4):
@@ -62,7 +70,8 @@ class MetadataConfig(_ConfigFile):
         certs = []
         for x509cert in stanza.findall(f'.//{x509_tag}'):
             text = base64.standard_b64decode(x509cert.text)
-            certs.append(x509.load_der_x509_certificate(text, default_backend()))
+            cert = x509.load_der_x509_certificate(text, default_backend())
+            certs.append(cert)
         return {
             'valid_until': valid_until,
             'certs': certs,

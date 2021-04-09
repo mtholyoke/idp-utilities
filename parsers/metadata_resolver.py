@@ -11,6 +11,15 @@ class MetadataResolverConfig(_ConfigFile):
     This is an aggregate of all the metadata resolver config files
     specified in `conf/services.xml`, in the order they are listed.
     """
+    # Inherited variables:
+    #     PATH_SUB = re.compile(...)
+    #     XMLNS = {...}
+    # Inherited methods:
+    #     __init__(self, config, filenames)
+    #     load_stanzas(self, filename)
+    #     make_path(self, text)
+    #     translate_config(self)
+    #     xmlns(self, ns, item)
 
     # Compare the contents of the metadata directory with the list
     # of files expected by the metadata resolver config files, plus

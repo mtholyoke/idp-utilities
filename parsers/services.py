@@ -8,6 +8,15 @@ class ServicesConfig(_ConfigFile):
     This is a representation of `conf/services.xml`, which the IdP
     uses to identify the names of other config files that it loads.
     """
+    # Inherited variables:
+    #     PATH_SUB = re.compile(...)
+    #     XMLNS = {...}
+    # Inherited methods:
+    #     __init__(self, config, filenames)
+    #     load_stanzas(self, filename)
+    #     make_path(self, text)
+    #     translate_config(self)
+    #     xmlns(self, ns, item)
 
     # Short forms of stanza ids for convenience elsewhere.
     ID_MAP = {

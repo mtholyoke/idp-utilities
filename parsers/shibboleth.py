@@ -52,6 +52,10 @@ class ShibbolethLog(_LogFile):
         'net.shibboleth.utilities.java.support.security.DataSealer',
         'org.opensaml.saml.saml2.binding.decoding.impl.HTTPRedirectDeflateDecoder',
         'org.opensaml.storage.impl.client.ClientStorageService',
+        'net.shibboleth.idp.saml.metadata.impl.ReloadingRelyingPartyMetadataProvider',
+        'org.opensaml.saml.metadata.resolver.impl.AbstractMetadataResolver',
+        'org.opensaml.xmlsec.impl.BasicEncryptionParametersResolver',
+        'net.shibboleth.idp.saml.saml2.profile.impl.PopulateEncryptionParameters',
         # These were on ion but not login:
         'org.opensaml.saml.metadata.resolver.impl.AbstractReloadingMetadataResolver',
         'net.shibboleth.utilities.java.support.security.BasicKeystoreKeyStrategy',
