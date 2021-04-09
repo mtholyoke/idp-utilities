@@ -20,14 +20,15 @@ class MetadataResolverConfig(_ConfigFile):
         missing = {}
 
         # Check expiration of metadata.
-        for filename, metadata in files.items():
-            if filename in self.config['metadata-ignore']:
-                continue
-            expiry = metadata.check_expiry()
-            if (expiry):
-                print(filename)
-                for note in expiry:
-                    print(f'- {note}')
+        if self.config['check_expiry']:
+            for filename, metadata in files.items():
+                if filename in self.config['metadata-ignore']:
+                    continue
+                expiry = metadata.check_expiry()
+                if (expiry):
+                    print(filename)
+                    for note in expiry:
+                        print(f'- {note}')
 
         # Check for everything required by config.
         for i, check in enumerate(self.config['metadata-require'], start=1):

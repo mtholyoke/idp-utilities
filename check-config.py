@@ -12,7 +12,10 @@ import subprocess
 import yaml
 
 
-def set_defaults(config={}):
+def get_config(args):
+    config = yaml.safe_load(args.config)
+    config['check_expiry'] = args.cert
+    # Set up defaults.
     if 'shibboleth-root' not in config:
         config['shibboleth-root'] = '/opt/shibboleth-idp'
     config['shibboleth-root'] = Path(config['shibboleth-root']).resolve()
@@ -43,9 +46,10 @@ if __name__ == '__main__':
     ap.add_argument('--config', type=open,
                     default=str(script_dir / 'config.yml'),
                     help='YAML file with configuration options.')
+    ap.add_argument('-c', '--cert', action='store_true',
+                    help='Also check for metadata and cert expiration.')
     args = ap.parse_args()
-    config = yaml.safe_load(args.config)
-    config = set_defaults(config)
+    config = get_config(args)
 
     xmllint(config)
 
