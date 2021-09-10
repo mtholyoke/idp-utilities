@@ -37,7 +37,7 @@ class MetadataResolverConfig(_ConfigFile):
                 if (expiry):
                     print(filename)
                     for note in expiry:
-                        print(f'- {note}')
+                        print(f'  - {note}')
 
         # Check for everything required by config.
         for i, check in enumerate(self.config['metadata-require'], start=1):
