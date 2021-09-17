@@ -31,11 +31,6 @@ if __name__ == '__main__':
     argp.set_defaults(command=help)
     subp = argp.add_subparsers(help=f'{__file__} {{command}} -h for more help')
 
-    loop_p = subp.add_parser('loop', help='Scan Tomcat log for looping')
-    loop_p.add_argument('-f', '--filename', type=str, nargs='*',
-                        default=['/var/log/tomcat9/access.log'],
-                        help='Log filename(s) to process, accepts wildcards')
-    loop_p.set_defaults(command=loops)
 
     sp_p = subp.add_parser('sp', help='Service providers that used the IdP')
     sp_p.add_argument('-f', '--filename', type=str, nargs='*',
