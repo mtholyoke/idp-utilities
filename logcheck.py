@@ -16,14 +16,15 @@ def loops(args):
 
 
 def service_providers(args):
-    kwargs = {
-        'idpv': args.idp_version,
-        'relying_party': args.relying_party
-    }
-    log = ShibbolethLog(**kwargs)
-    for filename in args.filename:
-        log.load(filename)
-    log.command_service_providers()
+    for party in args.relying_party: # allows for multiple party ID arguments
+        kwargs = {
+            'idpv': args.idp_version,
+            'relying_party': party
+        }
+        log = ShibbolethLog(**kwargs)
+        for filename in args.filename:
+            log.load(filename)
+        log.command_service_providers()
 
 
 if __name__ == '__main__':
@@ -38,7 +39,7 @@ if __name__ == '__main__':
                       help='Log filename(s) to process, accepts wildcards')
     sp_p.add_argument('-i', '--idp-version', default=4,
                       help='IdP version')
-    sp_p.add_argument('-r', '--relying-party', default=None,
+    sp_p.add_argument('-r', '--relying-party', required=True, default=None, nargs='*',
                       help='Restrict to this relying party and list users')
     sp_p.set_defaults(command=service_providers)
 
