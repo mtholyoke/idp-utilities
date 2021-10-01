@@ -151,17 +151,48 @@ class ShibbolethLog(_LogFile):
             return False
         return True
 
-    def command_service_providers(self):
-        service_providers = Counter()
-        users = Counter()
+
+    # entity_id = user
+    # relying_party = link
+    # returns a list of each relying_party accessed by particular user (and how many times)
+    # e.g.
+    # https://myhealth.mtholyoke.edu/shibboleth 1
+    # https://c66-shib.symplicity.com/sso/ 5
+    # ...
+    def command_relying_parties(self): # function is passed list containing idpv and relying_party
+        tot_count = 0 # keeps total count of links(relying_party) accessed by the user
+        relying_parties = Counter() # keep track of the number of accesses for each relying_party
+        for event in self.events:
+            if event.type != "Attribute":
+                continue
+            if event.user == self.name: #if the link we're looking at has been accessed by the given user
+                relying_parties[event.entity_id] += 1 #increment the number of times the link has been accessed
+                tot_count += 1
+        print(f'{tot_count} - {self.name}')
+        if self.name:
+            for party in sorted(relying_parties):
+                print(f'{party:8s} - {relying_parties[party]:3d}')
+
+
+
+    # returns a list of each user that accessed a given link(relying_party) and the number of times they did so
+    # e.g.
+    # swett22n -   1
+    # tarab22d -   1
+    # tavar22a -   1
+    # ...
+    def command_service_providers(self): # function is passed list containing idpv and relying_party
+        service_providers = Counter() #keeps total count of accesses for each relying_party
+        users = Counter() # keep track of the number of access times for each user
         for event in self.events:
             if event.type != "Attribute":
                 continue
             service_providers[event.entity_id] += 1
-            if self.relying_party:
-                users[event.user] += 1
-        for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True):
-            print(f'{count:6d} - {sp}')
+            if self.relying_party: 
+                users[event.user] += 1 #increment the number of times the user has visited the link
+        for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True): #loops through each service provider
+            print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party
         if self.relying_party:
             for user in sorted(users):
-                print(f'{user:8s} - {users[user]:3d}')
+                print(f'{user:8s} - {users[user]:3d}') # for each user in the list, print out the username
+                                                        # and number of times they accessed the relying party
