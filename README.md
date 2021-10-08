@@ -71,6 +71,6 @@ Currently, `loop` has no options.
 
 For `sp`, there are two:
 
-**`-i3`** is necessary for parsing IdP version 3 logfiles; they are in a slightly different format that cant’t easily be detected. If you forget, the only SP that shows up is “`http://shibboleth.net/ns/profiles/saml2/sso/browser`”
+**`-i3`** is necessary for parsing IdP version 3 logfiles; they are in a slightly different format that cant’t easily be detected. If you forget, the only SP that shows up is “`http://shibboleth.net/ns/profiles/saml2/sso/browser`” **(-i3 was removed in commit #0a61bde. Only IdP version 4 is supported now)**
 
 **`-r [entity_id]`** lets you specify a single relying party’s entity id, and _only_ processes connections to that SP. In addition to the simple count, it also outputs the list of users who have used it and the number of times for each.
