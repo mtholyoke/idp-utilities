@@ -2,6 +2,7 @@
 
 from argparse import ArgumentParser
 from parsers import ShibbolethLog, WebserverLog
+# import numpy as np
 
 
 def help(args):
@@ -33,17 +34,18 @@ def service_providers(args):
 
 # works similarly to service_providers: for a given username, print out each relying_party accessed by it
 def relying_parties(args):
-    kwargs = {
-        'idpv': args.idp_version,
-        'name': args.name,
-    }
-    if args.relying_party == []:
-        kwargs['relying_party'] = None # we'll get an error if there's an empty list
+     for name in args.name:
+            kwargs = {
+                'idpv': args.idp_version,
+                'name': name,
+            }
+            if args.relying_party == []:
+                kwargs['relying_party'] = None # we'll get an error if there's an empty list
 
-    log = ShibbolethLog(**kwargs)
-    for filename in args.filename:
-        log.load(filename)
-    log.command_relying_parties()
+            log = ShibbolethLog(**kwargs)
+            for filename in args.filename:
+                log.load(filename)
+            log.command_relying_parties()
 
 
 if __name__ == '__main__':
@@ -60,7 +62,7 @@ if __name__ == '__main__':
                       help='IdP version')
     sp_p.add_argument('-r', '--relying-party', required=True, default=None, nargs='*',
                       help='Restrict to this relying party and list users')
-    sp_p.add_argument('-n', '--name', default=None,
+    sp_p.add_argument('-n', '--name', default=None, nargs='*',
                       help='Restrict to this entity id and list relying parties') # takes a username and returns the relying party IDs (with counts)
     sp_p.set_defaults(command=service_providers)
 
