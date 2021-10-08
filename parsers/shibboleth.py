@@ -127,7 +127,8 @@ class ShibbolethLog(_LogFile):
             )
         if parse['module'] == 'Shibboleth-Audit.SSO':
             audit = parse['message'].split('|')
-            entity_id = audit[4] if self.idpv == 4 else audit[3]
+            # entity_id = audit[4] if self.idpv == 4 else audit[3]
+            entity_id = audit[4] #cuts out i3
             if self.relying_party and entity_id != self.relying_party:
                 return None
             return ShibbolethEvent(
@@ -135,7 +136,8 @@ class ShibbolethLog(_LogFile):
                 time=time,
                 level=level,
                 type='Attribute',
-                user=(audit[3] if self.idpv == 4 else audit[8]).lower(),
+                # user=(audit[3] if self.idpv == 4 else audit[8]).lower(),
+                user = audit[3], # cuts out i3
                 entity_id=entity_id,
                 # attributes=audit[8] if self.idpv == 4 else audit[10],
                 # browser=audit[20] if self.idpv == 4 else 'n/a',
