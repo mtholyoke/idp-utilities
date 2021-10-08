@@ -188,7 +188,7 @@ class ShibbolethLog(_LogFile):
             if event.type != "Attribute":
                 continue
             service_providers[event.entity_id] += 1
-            if self.relying_party: 
+            if self.relying_party:
                 users[event.user] += 1 #increment the number of times the user has visited the link
         for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True): #loops through each service provider
             print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party

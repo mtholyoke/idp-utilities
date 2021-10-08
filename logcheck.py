@@ -16,7 +16,6 @@ def loops(args):
 
 
 def service_providers(args):
-    print(args)
     # if a username has been specified, then deal with that in relying_parties
     if args.name:
         relying_parties(args)
@@ -34,8 +33,6 @@ def service_providers(args):
 
 # works similarly to service_providers: for a given username, print out each relying_party accessed by it
 def relying_parties(args):
-    print(args)
-
     kwargs = {
         'idpv': args.idp_version,
         'name': args.name,
