@@ -63,20 +63,20 @@ def relying_parties(args):
 if __name__ == '__main__':
     argp = ArgumentParser()
     argp.set_defaults(command=help)
-    subp = argp.add_subparsers(help=f'{__file__} {{command}} -h for more help')
+    # subp = argp.add_subparsers(help=f'{__file__} {{command}} -h for more help')
 
 
-    sp_p = subp.add_parser('sp', help='Service providers that used the IdP')
-    sp_p.add_argument('-f', '--filename', type=str, nargs='*',
-                      default=['/opt/shibboleth-idp/logs/idp-process.log'],
+    # sp_p = subp.add_parser('sp', help='Service providers that used the IdP')
+    argp.add_argument('-f', '--filename', type=str, nargs='*',
+                       default=['/opt/shibboleth-idp/logs/idp-process.log'],
                       help='Log filename(s) to process, accepts wildcards')
-    sp_p.add_argument('-i', '--idp-version', default=4,
+    argp.add_argument('-i', '--idp-version', default=4,
                       help='IdP version')
-    sp_p.add_argument('-r', '--relying-party', default=None, nargs='*',
+    argp.add_argument('-r', '--relying-party', default=None, nargs='*',
                       help='Restrict to this relying party and list users')
-    sp_p.add_argument('-n', '--name', default=None, nargs='*',
+    argp.add_argument('-n', '--name', default=None, nargs='*',
                       help='Restrict to this entity id and list relying parties') # takes a username and returns the relying party IDs (with counts)
-    sp_p.set_defaults(command=service_providers)
+    argp.set_defaults(command=service_providers)
 
     args = argp.parse_args()
     if args.command:
