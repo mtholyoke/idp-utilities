@@ -51,6 +51,7 @@ This script has two subcommands:
 **`loop`** scans one or more Tomcat (or Apache?) log files for repeated entries, consistent with the looping behavior we saw on the new production IdP from its launch in October 2020 through the fix in February 2021. **(Loop checking was removed in commit #bf21dda)**
 
 **`sp`** scans one or more `idp-process.log` files to see which service providers have received attributes from the IdP.
+**(sp was removed in commit #6beab69)**
 
 ### Filenames
 
@@ -74,3 +75,5 @@ For `sp`, there are two:
 **`-i3`** is necessary for parsing IdP version 3 logfiles; they are in a slightly different format that cant’t easily be detected. If you forget, the only SP that shows up is “`http://shibboleth.net/ns/profiles/saml2/sso/browser`” **(-i3 was removed in commit #0a61bde. Only IdP version 4 is supported now)**
 
 **`-r [entity_id]`** lets you specify a single relying party’s entity id, and _only_ processes connections to that SP. In addition to the simple count, it also outputs the list of users who have used it and the number of times for each.
+
+**`-n [username]`** lets you specify a username and return the relying party IDs 
