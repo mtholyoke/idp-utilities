@@ -18,30 +18,26 @@ def loops(args):
 
 def service_providers(args):
 
-    # -r is not specified
+    # neither -r nor -n specified
+    if args.relying_party == None and args.name == None:
+        print("You must specify either -n or -r or both")
+        return 0
+    # only -n specified
     if args.relying_party == None:
-        # neither -r nor -n specified
-        if args.name == None:
-            print("You must specify either -n or -r or both.")
-        # -n specified
-        else:
-            relying_parties(args)
+        relying_parties(args)
         return 0
 
     for party in args.relying_party: # allows for multiple party ID arguments
         kwargs = {
             'idpv': args.idp_version,
-            'relying_party': party
+            'relying_party': party,
+            'name': args.name
         }
         log = ShibbolethLog(**kwargs)
         for filename in args.filename:
             log.load(filename)
         log.command_service_providers()
 
-    # both -n and -r switches specified
-    if not args.name == None:
-        args.relying_party = None
-        relying_parties(args)
 
 
 # works similarly to service_providers: for a given username, print out each relying_party accessed by it
@@ -51,9 +47,9 @@ def relying_parties(args):
             kwargs = {
                 'idpv': args.idp_version,
                 'name': name,
+                'relying_party': args.relying_party
             }
 
-            kwargs['relying_party'] = args.relying_party   # we'll get an error if there's an empty list
 
             log = ShibbolethLog(**kwargs)
             for filename in args.filename:

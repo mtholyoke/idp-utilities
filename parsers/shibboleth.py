@@ -192,9 +192,26 @@ class ShibbolethLog(_LogFile):
             service_providers[event.entity_id] += 1
             if self.relying_party:
                 users[event.user] += 1 #increment the number of times the user has visited the link
-        for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True): #loops through each service provider
-            print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party
+            # if self.name:
+            #     if self.name[0] == event.user:
+                    # user_count+=1
+        # if self.name:
+        #     if self.name[0] == event.user:
+        #         print("HI")
+        #         print(f'{user_count} - {self.relying_party}')
+        #     return 0
+                # if self.name:
+                #     print("HI")
+        for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True): #prints the count of each user access
+            if not self.name: # we don't need to print the total count if -n has been specified
+                print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party
+
+        # figure out whether -n and -r have both been specified. If so, print intersection
+        # if self.relying_party and self.name:
+        #     print("Both")
+        #     print(f'{service_providers.items()} - {self.name}')
+        #     return 0
         if self.relying_party:
             for user in sorted(users):
-                print(f'{user:8s} - {users[user]:3d}') # for each user in the list, print out the username
-                                                        # and number of times they accessed the relying party
+                if not self.name or self.name[0] == user: # if -n has been specified, we only need to print the count of 1 user
+                    print(f'{user:8s} - {users[user]:3d}') # for each user in the list, print out the username
