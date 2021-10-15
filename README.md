@@ -78,4 +78,4 @@ For `sp`, there are two:
 
 **`-n [username]`** lets you specify a username and return the relying party IDs
 
-**`-n [username] -r [entity_id]`** lets you specify a username and a relying party's entity id and prints the number of times that user logged into the specified service 
+**`-n [username] -r [entity_id]`** lets you specify a username and a relying party's entity id and prints the number of times that user logged into the specified service. Also provides a detail view with date and IP address for each instance.
