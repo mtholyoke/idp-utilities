@@ -191,16 +191,25 @@ class ShibbolethLog(_LogFile):
     def command_service_providers(self): # function is passed list containing idpv and relying_party
         service_providers = Counter() #keeps total count of accesses for each relying_party
         users = Counter() # keep track of the number of access times for each user
+        user_details = [] # keep track of details for the specified user (if -n is specified)
         for event in self.events:
             if event.type != "Attribute":
                 continue
             service_providers[event.entity_id] += 1
             if self.relying_party:
                 users[event.user] += 1 #increment the number of times the user has visited the link
+                if self.name: # if -n has been specified
+                    if event.user == self.name[0]: #if we find an instance of the specified username, save the relevant details
+                        user_details.append([event.ip_addr, event.time])
+        # if -n has been specified, print the count, ip address, date
+        if self.name:
+            print(f'{self.name[0]} -- {len(user_details)}')
+            for instance in user_details:
+                print(instance)
+            return 0
+        # if -n has not been specified
         for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True): #prints the count of each user access
-            if not self.name: # we don't need to print the total count if -n has been specified
-                print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party
+            print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party
         if self.relying_party:
             for user in sorted(users):
-                if not self.name or self.name[0] == user: # if -n has been specified, we only need to print the count of 1 user
-                    print(f'{user:8s} - {users[user]:3d}') # for each user in the list, print out the username
+                print(f'{user:8s} - {users[user]:3d}') # for each user in the list, print out the username

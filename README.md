@@ -76,4 +76,6 @@ For `sp`, there are two:
 
 **`-r [entity_id]`** lets you specify a single relying party’s entity id, and _only_ processes connections to that SP. In addition to the simple count, it also outputs the list of users who have used it and the number of times for each.
 
-**`-n [username]`** lets you specify a username and return the relying party IDs 
+**`-n [username]`** lets you specify a username and return the relying party IDs
+
+**`-n [username] -r [entity_id]`** lets you specify a username and a relying party's entity id and prints the number of times that user logged into the specified service 
