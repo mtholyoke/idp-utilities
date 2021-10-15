@@ -27,6 +27,8 @@ class ShibbolethLog(_LogFile):
     #     2: Status: 'succeeded' or 'failed'
     LOGIN_REGEX = r"^Credential Validator ldap: Login by '(.*)' (\w+)$"
 
+    SKIP_REGEX = r"2021-06-22 01:47:10,869 - <.*> - WARN \[net.shibboleth\.idp\.authn\.impl\.LDAPCredentialValidator:182] - Credential Validator ldap: Login by <\w+> produced exception$"
+
     # TODO: Some of these are probably useful events
     SKIP_MODULES = [
         'net.shibboleth.idp.authn.ExternalAuthenticationException',
@@ -155,6 +157,8 @@ class ShibbolethLog(_LogFile):
         if parse['module'] in self.SKIP_MODULES:
             return False
         if parse['message'] == "Ignoring NameIDFormat metadata that includes the 'unspecified' format":
+            return False
+        if re.match(self.SKIP_REGEX, parse['message']) is not None:
             return False
         return True
 
