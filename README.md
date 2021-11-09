@@ -51,6 +51,7 @@ This script has two subcommands:
 **`loop`** scans one or more Tomcat (or Apache?) log files for repeated entries, consistent with the looping behavior we saw on the new production IdP from its launch in October 2020 through the fix in February 2021. **(Loop checking was removed in commit #bf21dda)**
 
 **`sp`** scans one or more `idp-process.log` files to see which service providers have received attributes from the IdP.
+**(sp was removed in commit #6beab69)**
 
 ### Filenames
 
