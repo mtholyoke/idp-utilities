@@ -76,4 +76,4 @@ For `sp`, there are two:
 
 **`-r [entity_id]`** lets you specify a single relying party’s entity id, and _only_ processes connections to that SP. In addition to the simple count, it also outputs the list of users who have used it and the number of times for each.
 
-**`-n [username]`** lets you specify a username and return the relying party IDs 
+**`-n [username]`** **(added in commit #d4e0f1c)** lets you specify a username and returns the relying party IDs. **(commit #181781b allows any number of usernames to be specified)**
