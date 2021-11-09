@@ -114,7 +114,7 @@ class ShibbolethLog(_LogFile):
 
     def make_event(self, parse):
         ip_addr = parse['ip_addr']
-        # TODO: make this timezone-aware
+        # TODO: make this timezone-aware.
         timestamp = parse[1] + '000'
         time = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S,%f')
         level = parse['level']
@@ -134,20 +134,17 @@ class ShibbolethLog(_LogFile):
             )
         if parse['module'] == 'Shibboleth-Audit.SSO':
             audit = parse['message'].split('|')
-            # entity_id = audit[4] if self.idpv == 4 else audit[3]
-            entity_id = audit[4] #cuts out i3
-            if self.relying_party and entity_id != self.relying_party:
+            if self.requester is not None and entity_id not in self.requester:
                 return None
             return ShibbolethEvent(
                 ip_addr=ip_addr,
                 time=time,
                 level=level,
                 type='Attribute',
-                # user=(audit[3] if self.idpv == 4 else audit[8]).lower(),
-                user = audit[3], # cuts out i3
-                entity_id=entity_id,
-                # attributes=audit[8] if self.idpv == 4 else audit[10],
-                # browser=audit[20] if self.idpv == 4 else 'n/a',
+                user=audit[3],
+                entity_id=audit[4],
+                attributes=audit[8],
+                browser=audit[20],
                 audit=audit
             )
         print('Unknown log module:', parse['module'])
@@ -162,58 +159,53 @@ class ShibbolethLog(_LogFile):
             return False
         return True
 
+    def command_scan(self):
+        principal = self.principal is not None
+        requester = self.requester is not None
+        report = {}
+        sites = Counter()
+        total = 0
 
-    # entity_id = user
-    # relying_party = link
-    # returns a list of each relying_party accessed by particular user (and how many times)
-    # e.g.
-    # https://myhealth.mtholyoke.edu/shibboleth 1
-    # https://c66-shib.symplicity.com/sso/ 5
-    # ...
-    def command_relying_parties(self): # function is passed list containing idpv and relying_party
-        tot_count = 0 # keeps total count of links(relying_party) accessed by the user
-        relying_parties = Counter() # keep track of the number of accesses for each relying_party
         for event in self.events:
+            # Filter the events to the ones we care about.
             if event.type != "Attribute":
                 continue
-            if event.user == self.name: #if the link we're looking at has been accessed by the given user
-                relying_parties[event.entity_id] += 1 #increment the number of times the link has been accessed
-                tot_count += 1
-        print(f'{tot_count} - {self.name}')
-        if self.name:
-            for party in sorted(relying_parties):
-                print(f'{party:8s} - {relying_parties[party]:3d}')
-
-
-
-    # returns a list of each user that accessed a given link(relying_party) and the number of times they did so
-    # e.g.
-    # swett22n -   1
-    # tarab22d -   1
-    # tavar22a -   1
-    # ...
-    def command_service_providers(self): # function is passed list containing idpv and relying_party
-        service_providers = Counter() #keeps total count of accesses for each relying_party
-        users = Counter() # keep track of the number of access times for each user
-        user_details = [] # keep track of details for the specified user (if -n is specified)
-        for event in self.events:
-            if event.type != "Attribute":
+            if principal and event.user not in self.principal:
                 continue
-            service_providers[event.entity_id] += 1
-            if self.relying_party:
-                users[event.user] += 1 #increment the number of times the user has visited the link
-                if self.name: # if -n has been specified
-                    if event.user == self.name[0]: #if we find an instance of the specified username, save the relevant details
-                        user_details.append([event.ip_addr, event.time])
-        # if -n has been specified, print the count, ip address, date
-        if self.name:
-            print(f'{self.name[0]} -- {len(user_details)}')
-            for instance in user_details:
-                print(instance)
-            return 0
-        # if -n has not been specified
-        for sp, count in sorted(service_providers.items(), key=lambda x: x[1], reverse=True): #prints the count of each user access
-            print(f'{count:6d} - {sp}') #prints out total count of user accesses and the relying_party
-        if self.relying_party:
-            for user in sorted(users):
-                print(f'{user:8s} - {users[user]:3d}') # for each user in the list, print out the username
+            if requester and event.entity_id not in self.requester:
+                continue
+            total += 1
+
+            # Record what we want to keep track of.
+            if principal and requester:
+                # Both -n and -r: print the detail.
+                print(
+                    f'{event.user:8s} - {event.ip_addr:15s} - {event.time.strftime("%Y-%m-%d %H:%M:%S")} - {event.entity_id}')
+            elif principal:
+                # Only -n: report how many times the user visits each site.
+                if event.user not in report:
+                    report[event.user] = Counter()
+                report[event.user][event.entity_id] += 1
+            elif requester:
+                # Only -r: report how many times each user visits the site.
+                if event.entity_id not in report:
+                    report[event.entity_id] = Counter()
+                report[event.entity_id][event.user] += 1
+            else:
+                # Neither -n nor -r: count visits to each site.
+                sites[event.entity_id] += 1
+
+        # Output the results.
+        if principal or requester:
+            for target in sorted(report.keys()):
+                for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
+                    user = target
+                    site = item
+                    if requester:
+                        user = item
+                        site = target
+                    print(f'{count:6d} - {user:8s} - {site}')
+        else:
+            for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
+                print(f'{count:5d} - {item}')
+        print(f'{total:6d}   Total')
