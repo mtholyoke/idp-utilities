@@ -55,7 +55,7 @@ This script scans one or more `idp-process.log` files to see details about which
 
 In both cases, the default file to analyze is the current (live) log file, as it would be named on the idpv4 servers: `/var/log/tomcat9/access.log` and `/opt/shibboleth-idp/logs/idp-process.log`. Use `-f` to specify a different filename.
 
-Wildcards are allowed, and filenames that end in `.gz` can be processed without unzipping them.
+Multiple filenames are allowed (separate by spaces), wildcards are allowed, and filenames that end in `.gz` can be processed without unzipping them.
 
 **Example**
 
@@ -66,9 +66,9 @@ To get every SP that has used this IdP for authentication over the entire `logs/
 
 ### Options
 
-**`-n [username]`** filters the logs for one or more usernames, and shows the SPs each of those users connected to, and how many times.
+**`-n [username ...]`** filters the logs for one or more usernames, and shows the SPs each of those users connected to, and how many times.
 
-**`-r [entity_id]`** filters the logs for one or more SP entity ids, and shows the users who connected to each of those SPs, and how many times.
+**`-r [entity_id ...]`** filters the logs for one or more SP entity ids, and shows the users who connected to each of those SPs, and how many times.
 
 **`-n [username] -r [entity_id]`** filters the logs for both usernames and SP entity ids, and provides a detail view with date and IP address for each instance.
 
