@@ -24,17 +24,18 @@ class ShibbolethLog(_LogFile):
 
     # Regex match groups:
     #     1: Username
-    #     2: Status: 'succeeded' or 'failed'
-    LOGIN_REGEX = r"^Credential Validator ldap: Login by '(.*)' (\w+)$"
-
-    SKIP_REGEX = r"2021-06-22 01:47:10,869 - <.*> - WARN \[net.shibboleth\.idp\.authn\.impl\.LDAPCredentialValidator:182] - Credential Validator ldap: Login by <\w+> produced exception$"
+    #     2: Status: one of 'succeeded', 'failed', 'produced exception'
+    LOGIN_REGEX = r"^Credential Validator ldap: Login by '?(.*)'? (\w+)$"
 
     # TODO: Some of these are probably useful events
     SKIP_MODULES = [
+        'java.lang.IllegalStateException',
         'net.shibboleth.idp.attribute.resolver.ad.impl.ContextDerivedAttributeDefinition',
         'net.shibboleth.idp.attribute.resolver.impl.AttributeResolverImpl',
         'net.shibboleth.idp.authn.AbstractUsernamePasswordCredentialValidator',
         'net.shibboleth.idp.authn.ExternalAuthenticationException',
+        'net.shibboleth.idp.authn.impl.AttributeSourcedSubjectCanonicalization',
+        'net.shibboleth.idp.authn.impl.FilterFlowsByForcedAuthn',
         'net.shibboleth.idp.authn.impl.FinalizeAuthentication',
         'net.shibboleth.idp.authn.impl.SelectAuthenticationFlow',
         'net.shibboleth.idp.profile.impl.SelectProfileConfiguration',
@@ -161,8 +162,6 @@ class ShibbolethLog(_LogFile):
             return False
         if parse['message'] == "Ignoring NameIDFormat metadata that includes the 'unspecified' format":
             return False
-        if re.match(self.SKIP_REGEX, parse['message']) is not None:
-            return False
         return True
 
     def command_scan(self):
@@ -213,5 +212,5 @@ class ShibbolethLog(_LogFile):
                     print(f'{count:6d} - {user:8s} - {site}')
         else:
             for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
-                print(f'{count:5d} - {item}')
+                print(f'{count:6d} - {item}')
         print(f'{total:6d}   Total')
