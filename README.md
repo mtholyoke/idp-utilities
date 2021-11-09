@@ -4,6 +4,8 @@ Required: Python 3.6 or greater with [PyYAML](https://pypi.org/project/PyYAML/) 
 
 Recommended: `xmllint`.
 
+
+
 ## `attributes.py`
 
 This script is a simplified version of `/bin/aacli.sh` to show what attributes would be returned if the given `-n` principal (user) authenticated for the given `-r` requester (service provider).
@@ -19,6 +21,7 @@ The notable differences from the Shibboleth-supplied script are its defaults:
 - Output in `saml2` format (including NameID, based on the SP’s metadata) — other `-f` format options are `saml1` and `json`.
 
 If you’re verifying attributes for a `DynamicHTTPMetadataProvider` or `FileBackedHTTPMetadataProvider`, you may need a local copy of its metadata.
+
 
 
 ## `check-config.py`
@@ -44,14 +47,9 @@ It then extracts three sets of files from `conf/services.xml`: metadata resolver
 Future plans include validating the `id` attributes in `conf/metadata-providers.xml` (they should match the metadata filenames themselves), comparing EntityIDs from metadata with `conf/attribute-filter.xml`, and a verbose output that includes more diagnostics and warnings.
 
 
-## `logcheck.py`
+## `logscan.py`
 
-This script has two subcommands:
-
-**`loop`** scans one or more Tomcat (or Apache?) log files for repeated entries, consistent with the looping behavior we saw on the new production IdP from its launch in October 2020 through the fix in February 2021. **(Loop checking was removed in commit #bf21dda)**
-
-**`sp`** scans one or more `idp-process.log` files to see which service providers have received attributes from the IdP.
-**(sp was removed in commit #6beab69)**
+This script scans one or more `idp-process.log` files to see details about which service providers have received attributes about which users from the IdP.
 
 ### Filenames
 
@@ -63,19 +61,18 @@ Wildcards are allowed, and filenames that end in `.gz` can be processed without 
 
 To get every SP that has used this IdP for authentication over the entire `logs/` directory:
 ```bash
-./logcheck.py sp -f /opt/shibboleth-idp/logs/idp-process*
+./logscan.py sp -f /opt/shibboleth-idp/logs/idp-process*
 ```
 
 ### Options
 
-Currently, `loop` has no options.
+**`-n [username]`** filters the logs for one or more usernames, and shows the SPs each of those users connected to, and how many times.
 
-For `sp`, there are two:
+**`-r [entity_id]`** filters the logs for one or more SP entity ids, and shows the users who connected to each of those SPs, and how many times.
 
-**`-i3`** is necessary for parsing IdP version 3 logfiles; they are in a slightly different format that cant’t easily be detected. If you forget, the only SP that shows up is “`http://shibboleth.net/ns/profiles/saml2/sso/browser`” **(-i3 was removed in commit #0a61bde. Only IdP version 4 is supported now)**
+**`-n [username] -r [entity_id]`** filters the logs for both usernames and SP entity ids, and provides a detail view with date and IP address for each instance.
 
-**`-r [entity_id]`** lets you specify a single relying party’s entity id, and _only_ processes connections to that SP. In addition to the simple count, it also outputs the list of users who have used it and the number of times for each.
 
-**`-n [username]`** lets you specify a username and return the relying party IDs
+### Previous functionality of `logscan.py`
 
-**`-n [username] -r [entity_id]`** lets you specify a username and a relying party's entity id and prints the number of times that user logged into the specified service. Also provides a detail view with date and IP address for each instance.
+The subcommand `loop`, which scanned webserver logs for the looping behavior we saw in late 2020, was removed in commit #bf21dda, which left subcommand `sp` as the only operation. It was simplified to remove the IdP version option in commit #0a61bde, and then removed as a subcommand in commit #6beab69. A final round of code cleanup in commit #b8250c8 renamed the script from `logcheck.py` and removed a few more remnants of the old code.
