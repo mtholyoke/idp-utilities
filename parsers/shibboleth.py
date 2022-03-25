@@ -29,6 +29,7 @@ class ShibbolethLog(_LogFile):
 
     # TODO: Some of these are probably useful events
     SKIP_MODULES = [
+        'DEPRECATED',
         'java.lang.IllegalStateException',
         'net.shibboleth.idp.attribute.resolver.ad.impl.ContextDerivedAttributeDefinition',
         'net.shibboleth.idp.attribute.resolver.impl.AttributeResolverImpl',
@@ -46,10 +47,12 @@ class ShibbolethLog(_LogFile):
         'net.shibboleth.idp.saml.saml2.profile.impl.ProcessLogoutRequest',
         'net.shibboleth.idp.saml.saml2.profile.impl.ValidateSAMLAuthentication',
         'net.shibboleth.idp.session.impl.DetectIdentitySwitch',
+        'net.shibboleth.idp.session.impl.ProcessLogout',
         'net.shibboleth.idp.session.impl.StorageBackedIdPSession',
         'net.shibboleth.idp.ui.csrf.impl.CSRFTokenFlowExecutionListener',
         'net.shibboleth.utilities.java.support.net.HttpServletSupport',
         'net.shibboleth.utilities.java.support.security.DataSealer',
+        'net.shibboleth.utilities.java.support.security.impl.IPRangeAccessControl',
         'org.apache.velocity.directive.parse',
         'org.apache.velocity.loader',
         'org.opensaml.profile.action.impl.DecodeMessage',
