@@ -1,8 +1,10 @@
 # IdP utility scripts
 
-Required: Python 3.6 or greater with [PyYAML](https://pypi.org/project/PyYAML/) and [cryptography](https://pypi.org/project/cryptography/) installed.
-
-Recommended: `xmllint`.
+Required:
+- Python 3.6 or greater with
+  - [PyYAML](https://pypi.org/project/PyYAML/)
+  - [cryptography](https://pypi.org/project/cryptography/) installed.
+- `xmllint`, which in Ubuntu comes from the `libxml2-utils` package
 
 
 
