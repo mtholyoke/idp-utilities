@@ -21,7 +21,8 @@
 # metadata-require:
 #   - "%{idp.home}/metadata/idp-metadata.xml"
 
-### A list of metadata files not to report as extraneous. No defaults.
+### A list of metadata files not to report as extraneous
+### or parse for content validation. No defaults.
 # metadata-ignore:
 
 ### Path to xmllint. Set to false if it is not installed.

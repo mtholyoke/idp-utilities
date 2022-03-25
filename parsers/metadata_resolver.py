@@ -73,6 +73,8 @@ class MetadataResolverConfig(_ConfigFile):
         metadata_dir = self.config['shibboleth-root'] / 'metadata'
         files = {}
         for filename in metadata_dir.glob('**/*.xml'):
+            if str(filename) in self.config['metadata-ignore']:
+                continue
             files[str(filename)] = MetadataConfig(self.config, [filename])
         return files
 
