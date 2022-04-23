@@ -5,12 +5,13 @@ from pathlib import Path
 import json
 import socket
 import ssl
+import sys
 import urllib.parse
 import urllib.request
 import yaml
 
 
-def format_easy(input=""):
+def format_easy(input=''):
     parsed = json.loads(input)
     attrib_list = parsed['attributes']
     attrib_dict = {}
@@ -54,8 +55,8 @@ if __name__ == '__main__':
     base = f"https://{config['hostname']}/idp/profile/admin/resolvertest"
     requester = args.requester
     format = args.format if args.format != 'easy' else 'json'
-    if args.requester == 'test':
-        requester = 'https://samltest.id/saml/sp'
+    if args.requester == 'test' and 'test-sp' in config:
+        requester = config['test-sp']
         format = 'json'
     query = {
         'principal': args.principal,
@@ -71,5 +72,8 @@ if __name__ == '__main__':
     response = urllib.request.urlopen(url, context=cx)
     result = response.read().decode()
     if args.format == 'easy' or args.requester == 'test':
-        result = format_easy(result)
+        try:
+            result = format_easy(result)
+        except json.JSONDecodeError:
+            sys.exit('ERROR: Could not parse response from IdP')
     print(result)

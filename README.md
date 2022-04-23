@@ -21,12 +21,13 @@ The notable differences from the Shibboleth-supplied script are its defaults:
 
 - Uses the IdP’s hostname instead of `localhost` – can be overridden in `config.yml`
 - Output defaults to `saml2` format (including NameID, based on the SP’s metadata) — other `-f` format options are `saml1`, `json`, and custom format `easy` (see below).
-- Requester `test` is a shortcut for SAMLtest.id, which has all known attribute released to it.
+- If `test-sp` is configured in `config.yml`, specify requester `test` as a shortcut to testing attribute release to that SP and show its output in `easy` format.
 
-If you specify `-f easy`, the output is only attribute names and values — no XML or JSON.
+If you specify `-f easy`, the output is only attribute names and values — no XML or JSON wrapping — sorted alphabetically by name. Multivalued attributes are presented as lists within square brackets (`['value1', 'value2']`).
 
 If you’re verifying attributes for a `DynamicHTTPMetadataProvider` or `FileBackedHTTPMetadataProvider`, you may need a local copy of its metadata.
 
+**TODO:** Currently `easy` parses the JSON output; switch it to `saml2` so it can show the NameID also.
 
 
 ## `check-config.py`

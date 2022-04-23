@@ -31,3 +31,9 @@
 ### Hostname for attribute resolution. Defaults to current host’s FQDN,
 ### but `localhost` is allowed. SSL cert is not verified.
 # hostname: localhost
+
+### Test SP for attribute resolution. This should be an SP that gets
+### all known attributes released to it. Use it with attributes.py
+### by specifying `-r test`. There is no default; if this value is not
+### set, the string “test” will be used as the requester’s Entity ID.
+# test-sp: https://sp.example.edu
