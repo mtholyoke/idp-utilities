@@ -19,8 +19,11 @@ utils/attributes.py -n jsmith -r https://sp.example.edu
 
 The notable differences from the Shibboleth-supplied script are its defaults:
 
-- Use the IdP’s hostname instead of `localhost` – can be overridden in `config.yml`
-- Output in `saml2` format (including NameID, based on the SP’s metadata) — other `-f` format options are `saml1` and `json`.
+- Uses the IdP’s hostname instead of `localhost` – can be overridden in `config.yml`
+- Output defaults to `saml2` format (including NameID, based on the SP’s metadata) — other `-f` format options are `saml1`, `json`, and custom format `easy` (see below).
+- Requester `test` is a shortcut for SAMLtest.id, which has all known attribute released to it.
+
+If you specify `-f easy`, the output is only attribute names and values — no XML or JSON.
 
 If you’re verifying attributes for a `DynamicHTTPMetadataProvider` or `FileBackedHTTPMetadataProvider`, you may need a local copy of its metadata.
 

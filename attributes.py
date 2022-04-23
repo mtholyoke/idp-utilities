@@ -52,10 +52,14 @@ if __name__ == '__main__':
     config = set_defaults(config)
 
     base = f"https://{config['hostname']}/idp/profile/admin/resolvertest"
+    requester = args.requester
     format = args.format if args.format != 'easy' else 'json'
+    if args.requester == 'test':
+        requester = 'https://samltest.id/saml/sp'
+        format = 'json'
     query = {
-        'requester': args.requester,
         'principal': args.principal,
+        'requester': requester,
         format: True,
     }
     url = f'{base}?{urllib.parse.urlencode(query)}'
@@ -66,6 +70,6 @@ if __name__ == '__main__':
 
     response = urllib.request.urlopen(url, context=cx)
     result = response.read().decode()
-    if args.format == 'easy':
+    if args.format == 'easy' or args.requester == 'test':
         result = format_easy(result)
     print(result)
