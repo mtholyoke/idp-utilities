@@ -72,6 +72,7 @@ class ShibbolethLog(_LogFile):
         'org.springframework.webflow.execution.FlowExecutionException',
         'org.springframework.webflow.execution.repository.FlowExecutionRestorationFailureException',
         'org.springframework.webflow.execution.repository.NoSuchFlowExecutionException',
+        'Shibboleth-Audit.Login',
         'Shibboleth-Audit.Logout',
         'Shibboleth-Audit.ResolverTest',
         # These were on ion but not login:
@@ -144,7 +145,7 @@ class ShibbolethLog(_LogFile):
             )
         if parse['module'] == 'Shibboleth-Audit.SSO':
             audit = parse['message'].split('|')
-            if self.requester is not None and entity_id not in self.requester:
+            if self.requester is not None and audit[4] not in self.requester:
                 return None
             return ShibbolethEvent(
                 ip_addr=ip_addr,
