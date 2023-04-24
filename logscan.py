@@ -2,16 +2,22 @@
 
 from argparse import ArgumentParser
 from parsers import ShibbolethLog
+import datetime as dt
 
+today = dt.date.today()
+first = today.replace(day=1)
+last_month = first - dt.timedelta(days=1)
+month_default = last_month.strftime("%Y-%m")
 
 def help(args):
     argp.print_help()
 
-
 def scan(args):
     kwargs = {
         'principal': args.principal,
-        'requester': args.requester
+        'requester': args.requester,
+        'month' : args.month,
+        'output' : args.output
     }
     log = ShibbolethLog(**kwargs)
     for filename in args.filename:
@@ -29,6 +35,11 @@ if __name__ == '__main__':
                       help='Restrict to this username and list service providers')
     argp.add_argument('-r', '--requester', default=None, nargs='+',
                       help='Restrict to this service provider and list usernames')
+    #I don't think that atm this is the right nargs, revisit. 
+    argp.add_argument('-m', '--month', default=None, const=month_default, nargs='?',
+                      help='Restrict to this month and list service providers and usernames')
+    argp.add_argument('-o', '--output', default='output', nargs='?',
+                      help='Create logs of results in this output directory.')
 
     args = argp.parse_args()
     scan(args)

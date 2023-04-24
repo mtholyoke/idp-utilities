@@ -4,6 +4,7 @@ import re
 from collections import Counter
 from datetime import datetime
 from ._logfile import _LogEvent, _LogFile
+import csv
 
 
 class ShibbolethEvent(_LogEvent):
@@ -167,10 +168,22 @@ class ShibbolethLog(_LogFile):
         if parse['message'] == "Ignoring NameIDFormat metadata that includes the 'unspecified' format":
             return False
         return True
+    
+    def process_like_link(self, target):
+        if 'http' in target:
+            if 'www' in target:
+                target = target.split('www')[1]
+            else:
+                target = target.split("://")[1]
+            target_temp = target.split('.')
+            target = target_temp[min(len(target)-2, 0)]
+        return target
 
     def command_scan(self):
         principal = self.principal is not None
         requester = self.requester is not None
+        month = self.month is not None
+        output = self.output is not None
         report = {}
         sites = Counter()
         total = 0
@@ -182,6 +195,8 @@ class ShibbolethLog(_LogFile):
             if principal and event.user not in self.principal:
                 continue
             if requester and event.entity_id not in self.requester:
+                continue
+            if month and self.month not in str(event.time):
                 continue
             total += 1
 
@@ -200,20 +215,30 @@ class ShibbolethLog(_LogFile):
                 if event.entity_id not in report:
                     report[event.entity_id] = Counter()
                 report[event.entity_id][event.user] += 1
+            elif month:
+                #Only -m: report how many times each user visits each site in a certain month.
+                if event.entity_id not in report:
+                    report[event.entity_id] = Counter()
+                report[event.entity_id][event.user] += 1
             else:
-                # Neither -n nor -r: count visits to each site.
+                # Neither -n nor -r nor -m: count visits to each site.
                 sites[event.entity_id] += 1
 
         # Output the results.
-        if principal or requester:
+        if principal or requester or month:
             for target in sorted(report.keys()):
+                #put output in logs 
+                service = self.process_like_link(target)
+                if month: log = open(f"./{self.output}/{service}_{self.month}.txt", 'w')
+                else: log = open(f"./{self.output}/{service}_all.txt", 'w')             
                 for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
                     user = target
                     site = item
-                    if requester:
+                    if requester or month:
                         user = item
                         site = target
-                    print(f'{count:6d} - {user:8s} - {site}')
+                    log.write(f'{count:6d} - {user:8s}\n')
+                log.close()
         else:
             for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
                 print(f'{count:6d} - {item}')
