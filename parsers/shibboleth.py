@@ -171,19 +171,19 @@ class ShibbolethLog(_LogFile):
     
     def process_like_link(self, target):
         if 'http' in target:
-            if 'www' in target:
-                target = target.split('www')[1]
+            if 'www.' in target:
+                target = target.split('www.')[1]
             else:
                 target = target.split("://")[1]
+            target = target.split('/')[0]
             target_temp = target.split('.')
-            target = target_temp[min(len(target)-2, 0)]
+            target = '.'.join(target_temp[:max(len(target_temp)-1, 0)])
         return target
 
     def command_scan(self):
         principal = self.principal is not None
         requester = self.requester is not None
         month = self.month is not None
-        output = self.output is not None
         report = {}
         sites = Counter()
         total = 0
@@ -224,22 +224,33 @@ class ShibbolethLog(_LogFile):
                 # Neither -n nor -r nor -m: count visits to each site.
                 sites[event.entity_id] += 1
 
+        
         # Output the results.
         if principal or requester or month:
             for target in sorted(report.keys()):
                 #put output in logs 
                 service = self.process_like_link(target)
-                if month: log = open(f"./{self.output}/{service}_{self.month}.txt", 'w')
-                else: log = open(f"./{self.output}/{service}_all.txt", 'w')             
+                if month:
+                    csvfile = open(f"./{self.output}/{service}_{self.month}.csv", 'w')
+                    log = csv.writer(csvfile, delimiter = ",") 
+                    #log = open(f"./{self.output}/{service}_{self.month}.txt", 'w')
+                else: 
+                    csvfile = open(f"./{self.output}/{service}_all.csv", 'w')
+                    log = csv.writer(csvfile, delimiter = ",")
+                    #log = open(f"./{self.output}/{service}_all.txt", 'w')             
                 for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
                     user = target
                     site = item
                     if requester or month:
                         user = item
                         site = target
-                    log.write(f'{count:6d} - {user:8s}\n')
-                log.close()
+                    log.writerow([f'{user:8s}', f'{count:6d}'])
+                csvfile.close()
         else:
+            csvfile = open(f"./{self.output}/all_services.csv", 'w')
+            log = csv.writer(csvfile, delimiter = ",")
+            #log = open(f"./{self.output}/all_services.txt", 'w')
             for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
-                print(f'{count:6d} - {item}')
+                log.writerow([f'{self.process_like_link(item)}', f'{count:6d}'])
+            csvfile.close()
         print(f'{total:6d}   Total')
