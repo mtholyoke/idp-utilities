@@ -142,7 +142,7 @@ class ShibbolethLog(_LogFile):
                 level=level,
                 type='Login',
                 user=login[1].lower(),
-                success=(login[2] == 'succeeded')
+                success=(login[2] == 'succeeded'),
             )
         if parse['module'] == 'Shibboleth-Audit.SSO':
             audit = parse['message'].split('|')
@@ -184,14 +184,19 @@ class ShibbolethLog(_LogFile):
         principal = self.principal is not None
         requester = self.requester is not None
         month = self.month is not None
+        sso = self.single_sign_on is not None 
         report = {}
         sites = Counter()
         total = 0
 
         for event in self.events:
             # Filter the events to the ones we care about.
-            if event.type != "Attribute":
-                continue
+            if not sso:
+                if event.type != "Attribute":
+                    continue
+            else:
+                if event.type != "Attribute" and event.type != "Login":
+                    continue
             if principal and event.user not in self.principal:
                 continue
             if requester and event.entity_id not in self.requester:
@@ -220,24 +225,39 @@ class ShibbolethLog(_LogFile):
                 if event.entity_id not in report:
                     report[event.entity_id] = Counter()
                 report[event.entity_id][event.user] += 1
+            elif sso:
+                """
+                The intention here is to figure out how many times each user has a login 
+                event, and how many times the same user has an attribute event. That way,
+                the total amount of ssos for that user = attributes - logins.
+                It does not currently do that, however. 
+                """
+                if event.type == 'Login':
+                    if event.user not in report:
+                        report[event.user] = Counter()
+                        report[event.user][event] = 0
+                    print("This is a login, so count is 0")
+                elif event.type == 'Attribute':
+                    if event.user not in report:
+                        continue
+                    report[event.user][event] += 1
+                    #print("This is an sso, so count is " + str(report[event.user][event]))
             else:
                 # Neither -n nor -r nor -m: count visits to each site.
                 sites[event.entity_id] += 1
 
         
         # Output the results.
-        if principal or requester or month:
+        if principal or requester or month: 
             for target in sorted(report.keys()):
                 #put output in logs 
+                #if month or requester:
                 service = self.process_like_link(target)
                 if month:
                     csvfile = open(f"./{self.output}/{service}_{self.month}.csv", 'w')
-                    log = csv.writer(csvfile, delimiter = ",") 
-                    #log = open(f"./{self.output}/{service}_{self.month}.txt", 'w')
                 else: 
                     csvfile = open(f"./{self.output}/{service}_all.csv", 'w')
-                    log = csv.writer(csvfile, delimiter = ",")
-                    #log = open(f"./{self.output}/{service}_all.txt", 'w')             
+                log = csv.writer(csvfile, delimiter = ",") 
                 for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
                     user = target
                     site = item
@@ -247,10 +267,21 @@ class ShibbolethLog(_LogFile):
                     log.writerow([f'{user:8s}', f'{count:6d}'])
                 csvfile.close()
         else:
-            csvfile = open(f"./{self.output}/all_services.csv", 'w')
-            log = csv.writer(csvfile, delimiter = ",")
-            #log = open(f"./{self.output}/all_services.txt", 'w')
-            for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
-                log.writerow([f'{self.process_like_link(item)}', f'{count:6d}'])
-            csvfile.close()
+            """
+            Put all users' count of ssos in one file.
+            """
+            if sso:
+                csvfile = open(f"./{self.output}/user_sso_stats.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",")
+                for target in sorted(report.keys()):
+                    for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
+                        user = target
+                        site = item
+                        log.writerow([f'{user:8s}', f'{count:6d}'])
+            else:
+                csvfile = open(f"./{self.output}/all_services.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",")
+                for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
+                    log.writerow([f'{self.process_like_link(item)}', f'{count:6d}'])
+                csvfile.close()
         print(f'{total:6d}   Total')

@@ -17,7 +17,8 @@ def scan(args):
         'principal': args.principal,
         'requester': args.requester,
         'month' : args.month,
-        'output' : args.output
+        'output' : args.output,
+        'single_sign_on': args.single_sign_on
     }
     log = ShibbolethLog(**kwargs)
     for filename in args.filename:
@@ -40,6 +41,8 @@ if __name__ == '__main__':
                       help='Restrict to this month and list service providers and usernames')
     argp.add_argument('-o', '--output', default='output', nargs='?',
                       help='Create logs of results in this output directory.')
+    argp.add_argument('-s', '--single_sign_on', default=None, const=True, nargs='?', 
+                      help='Looks information on single sign on usage.')
 
     args = argp.parse_args()
     scan(args)
