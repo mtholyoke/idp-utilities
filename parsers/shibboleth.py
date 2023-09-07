@@ -236,7 +236,6 @@ class ShibbolethLog(_LogFile):
                     if event.user not in report:
                         report[event.user] = Counter()
                         report[event.user][event] = 0
-                    print("This is a login, so count is 0")
                 elif event.type == 'Attribute':
                     if event.user not in report:
                         continue
