@@ -38,7 +38,7 @@ if __name__ == '__main__':
     #I don't think that atm this is the right nargs, revisit. 
     argp.add_argument('-m', '--month', default=None, const=month_default, nargs='?',
                       help='Restrict to this month and list service providers and usernames')
-    argp.add_argument('-o', '--output', default='output', nargs='?',
+    argp.add_argument('-o', '--output', default=None, nargs='?',
                       help='Create logs of results in this output directory.')
 
     args = argp.parse_args()
