@@ -5,6 +5,7 @@ from collections import Counter
 from datetime import datetime
 from ._logfile import _LogEvent, _LogFile
 import csv
+import os
 
 
 class ShibbolethEvent(_LogEvent):
@@ -180,6 +181,40 @@ class ShibbolethLog(_LogFile):
             target = '.'.join(target_temp[:max(len(target_temp)-1, 0)])
         return target
 
+    """
+    Takes in a string array representing an amount of requests from a user for a service and if output directory is present, 
+    writes them into a csv file. If output is not present, then prints. 
+    Parameters:
+        requests(string[]): will appear as user,#requests 
+        service(string): name of the service user is accessing, determines which file 
+        the requests might go into
+    Returns: None
+    """
+    def show_output(self, requests, service):
+        if self.output:
+            if self.month:
+                csvfile = open(f"./{self.output}/{service}_{self.month}.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",") 
+                for request in requests:
+                    log.writerow(request)
+                csvfile.close()
+            #special case for all_services
+            elif not service and self.output:
+                csvfile = open(f"./{self.output}/all_services.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",")
+                for request in requests:
+                    log.writerow(request)
+                csvfile.close() 
+            elif self.output: 
+                csvfile = open(f"./{self.output}/{service}_all.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",")
+                for request in requests:
+                    log.writerow(request)
+                csvfile.close() 
+            else:
+                for request in requests:
+                    print(request)
+    
     def command_scan(self):
         principal = self.principal is not None
         requester = self.requester is not None
@@ -188,6 +223,24 @@ class ShibbolethLog(_LogFile):
         report = {}
         sites = Counter()
         total = 0
+
+        #ensure output folder already exists
+        #if it does, create a new folder with self.output as name is self.output exists
+        #if it doesn't and it's a month, quit program
+        #otherwise it's fine
+        try:
+            out = open(f"./{self.output}/all_services.csv", 'r')
+            out.close()
+        except:
+            if self.output:
+                print("Output folder not present. Attempting to create...")
+                output_file = os.path.join(os.getcwd(), self.output)
+                os.mkdir(output_file)
+                print("Creation successful.")
+            elif month:
+                print("Month detected with no output specified. Please provide output directory with -o.")
+                print("Quitting program...")
+                return
 
         for event in self.events:
             # Filter the events to the ones we care about.
@@ -200,8 +253,9 @@ class ShibbolethLog(_LogFile):
             if month and self.month not in str(event.time):
                 continue
             total += 1
-
+            
             # Record what we want to keep track of.
+            
             if principal and requester:
                 # Both -n and -r: print the detail.
                 print(
@@ -231,41 +285,18 @@ class ShibbolethLog(_LogFile):
             for target in sorted(report.keys()):
                 #put output in logs 
                 service = self.process_like_link(target)
-                if month:
-                    if self.output == None:
-                        #since output is not required, ensured that if there is no output
-                        #when it is needed for month a new output is set. 
-                        self.output = 'output'
-                    csvfile = open(f"./{self.output}/{service}_{self.month}.csv", 'w')
-                    log = csv.writer(csvfile, delimiter = ",") 
-                elif output: 
-                    csvfile = open(f"./{self.output}/{service}_all.csv", 'w')
-                    log = csv.writer(csvfile, delimiter = ",") 
-                if output: #since either output exists or was set in month        
-                    for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
-                        user = target
-                        site = item
-                        if requester or month:
-                            user = item
-                            site = target
-                        log.writerow([f'{user}', f'{count}'])
-                    csvfile.close()
-                else: #if printing to console
-                    for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
-                        user = target
-                        site = item
-                        if requester or month:
-                            user = item
-                            site = target
-                        print([f'{user}', f'{count}'])
+                requests = []       
+                for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
+                    user = target
+                    site = item
+                    if requester or month:
+                        user = item
+                        site = target
+                    requests.append(([f'{user}', f'{count}']))
+                self.show_output(requests, service)
         else:
-            if output: 
-                csvfile = open(f"./{self.output}/all_services.csv", 'w')
-                log = csv.writer(csvfile, delimiter = ",")
-                for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
-                    log.writerow([f'{self.process_like_link(item)}', f'{count:6d}'])
-                csvfile.close()
-            else: #if output doesn't exist, print to console instead.
-                for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
-                    print([f'{self.process_like_link(item)}', f'{count:6d}'])
+            requests = []
+            for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
+                requests.append([f'{self.process_like_link(item)}', f'{count:6d}'])
+            self.show_output(requests, False)
         print(f'{total:6d}   Total')
