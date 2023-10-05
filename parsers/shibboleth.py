@@ -292,7 +292,10 @@ class ShibbolethLog(_LogFile):
                     if requester or month:
                         user = item
                         site = target
-                    requests.append(([f'{user}', f'{count}']))
+                    if principal and not requester:
+                        requests.append(([f'{site}', f'{count}']))
+                    else:
+                        requests.append(([f'{user}', f'{count}']))
                 self.show_output(requests, service)
         else:
             requests = []
