@@ -4,3 +4,4 @@ __pycache__
 logs/
 output/
 TrueSAManage.com_True.log
+test_sso/

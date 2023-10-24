@@ -33,13 +33,13 @@ class ShibbolethLog(_LogFile):
     SKIP_MODULES = [
         'DEPRECATED',
         'java.lang.IllegalStateException',
+        'net.shibboleth.idp.authn.impl.FinalizeAuthentication',
         'net.shibboleth.idp.attribute.resolver.ad.impl.ContextDerivedAttributeDefinition',
         'net.shibboleth.idp.attribute.resolver.impl.AttributeResolverImpl',
         'net.shibboleth.idp.authn.AbstractUsernamePasswordCredentialValidator',
         'net.shibboleth.idp.authn.ExternalAuthenticationException',
         'net.shibboleth.idp.authn.impl.AttributeSourcedSubjectCanonicalization',
         'net.shibboleth.idp.authn.impl.FilterFlowsByForcedAuthn',
-        'net.shibboleth.idp.authn.impl.FinalizeAuthentication',
         'net.shibboleth.idp.authn.impl.SelectAuthenticationFlow',
         'net.shibboleth.idp.profile.impl.SelectProfileConfiguration',
         'net.shibboleth.idp.profile.impl.WebFlowMessageHandlerAdaptor',
@@ -143,23 +143,36 @@ class ShibbolethLog(_LogFile):
                 level=level,
                 type='Login',
                 user=login[1].lower(),
-                success=(login[2] == 'succeeded')
+                success=(login[2] == 'succeeded'),
             )
         if parse['module'] == 'Shibboleth-Audit.SSO':
             audit = parse['message'].split('|')
-            if self.requester is not None and audit[4] not in self.requester:
-                return None
-            return ShibbolethEvent(
-                ip_addr=ip_addr,
-                time=time,
-                level=level,
-                type='Attribute',
-                user=audit[3],
-                entity_id=audit[4],
-                attributes=audit[8],
-                browser=audit[20],
-                audit=audit
+            if self.events[-1].type == 'Login':
+                return ShibbolethEvent(
+                    ip_addr=ip_addr,
+                    time=time,
+                    level=level,
+                    type='Attribute',
+                    user=audit[3],
+                    entity_id=audit[4],
+                    attributes=audit[8],
+                    browser=audit[20],
+                    audit=audit,
+                    sso=False
             )
+            else:
+                return ShibbolethEvent(
+                    ip_addr=ip_addr,
+                    time=time,
+                    level=level,
+                    type='Attribute',
+                    user=audit[3],
+                    entity_id=audit[4],
+                    attributes=audit[8],
+                    browser=audit[20],
+                    audit=audit,
+                    sso=True
+                )
         print('Unknown log module:', parse['module'])
         return None
 
@@ -192,21 +205,25 @@ class ShibbolethLog(_LogFile):
     """
     def show_output(self, requests, service):
         if self.output:
+            if self.sso:
+                sso_add = "sso_"
+            else:
+                sso_add = ""
             if self.month:
-                csvfile = open(f"./{self.output}/{service}_{self.month}.csv", 'w')
+                csvfile = open(f"./{self.output}/{service}_" + sso_add + f"{self.month}.csv", 'w')
                 log = csv.writer(csvfile, delimiter = ",") 
                 for request in requests:
                     log.writerow(request)
                 csvfile.close()
             #special case for all_services
             elif not service and self.output:
-                csvfile = open(f"./{self.output}/all_services.csv", 'w')
+                csvfile = open(f"./{self.output}/" + sso_add + "all_services.csv", 'w')
                 log = csv.writer(csvfile, delimiter = ",")
                 for request in requests:
                     log.writerow(request)
                 csvfile.close() 
             elif self.output: 
-                csvfile = open(f"./{self.output}/{service}_all.csv", 'w')
+                csvfile = open(f"./{self.output}/{service}_" + sso_add + "all.csv", 'w')
                 log = csv.writer(csvfile, delimiter = ",")
                 for request in requests:
                     log.writerow(request)
@@ -220,6 +237,7 @@ class ShibbolethLog(_LogFile):
         requester = self.requester is not None
         month = self.month is not None
         output = self.output is not None
+        sso = self.sso
         report = {}
         sites = Counter()
         total = 0
@@ -228,21 +246,25 @@ class ShibbolethLog(_LogFile):
         #if it does, create a new folder with self.output as name is self.output exists
         #if it doesn't and it's a month, quit program
         #otherwise it's fine
+        #try:
+           # out = open(f"./{self.output}/all_services.csv", 'r')
+            #out.close()
         try:
-            out = open(f"./{self.output}/all_services.csv", 'r')
-            out.close()
+            if not os.path.exists(os.path.join(os.getcwd(), self.output)):
+                if self.output:
+                    print("Output folder not present. Attempting to create...")
+                    output_file = os.path.join(os.getcwd(), self.output)
+                    os.mkdir(output_file)
+                    print("Creation successful.")
+                elif month:
+                    print("Month detected with no output specified. Please provide output directory with -o.")
+                    print("Quitting program...")
+                    return
         except:
-            if self.output:
-                print("Output folder not present. Attempting to create...")
-                output_file = os.path.join(os.getcwd(), self.output)
-                os.mkdir(output_file)
-                print("Creation successful.")
-            elif month:
-                print("Month detected with no output specified. Please provide output directory with -o.")
-                print("Quitting program...")
-                return
+            pass
 
         for event in self.events:
+                
             # Filter the events to the ones we care about.
             if event.type != "Attribute":
                 continue
@@ -252,30 +274,34 @@ class ShibbolethLog(_LogFile):
                 continue
             if month and self.month not in str(event.time):
                 continue
-            total += 1
+            #if sso isn't True, we don't care and count as normal. If it IS true, event.sso must be true as well
+            to_count = not sso or event.sso
+            test = not sso
+            if to_count:
+                total += 1
             
-            # Record what we want to keep track of.
-            
-            if principal and requester:
+            # Record what we want to keep track of.  
+            #print("to_count is " + str(to_count) + " when sso is " + str(sso) + " and event.sso is " + str(event.sso))                     
+            if principal and requester and to_count:
                 # Both -n and -r: print the detail.
                 print(
                     f'{event.user:8s} - {event.ip_addr:15s} - {event.time.strftime("%Y-%m-%d %H:%M:%S")} - {event.entity_id}')
-            elif principal:
+            elif principal and to_count:
                 # Only -n: report how many times the user visits each site.
                 if event.user not in report:
                     report[event.user] = Counter()
                 report[event.user][event.entity_id] += 1
-            elif requester:
+            elif requester and to_count:
                 # Only -r: report how many times each user visits the site.
                 if event.entity_id not in report:
                     report[event.entity_id] = Counter()
                 report[event.entity_id][event.user] += 1
-            elif month:
+            elif month and to_count:
                 #Only -m: report how many times each user visits each site in a certain month.
                 if event.entity_id not in report:
                     report[event.entity_id] = Counter()
                 report[event.entity_id][event.user] += 1
-            else:
+            elif to_count:
                 # Neither -n nor -r nor -m: count visits to each site.
                 sites[event.entity_id] += 1
 
@@ -293,7 +319,7 @@ class ShibbolethLog(_LogFile):
                         user = item
                         site = target
                     if principal and not requester:
-                        requests.append(([f'{site}', f'{count}']))
+                        requests.append(([f'{self.process_like_link(item)}', f'{count}']))
                     else:
                         requests.append(([f'{user}', f'{count}']))
                 self.show_output(requests, service)
