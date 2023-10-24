@@ -4,6 +4,8 @@ import re
 from collections import Counter
 from datetime import datetime
 from ._logfile import _LogEvent, _LogFile
+import csv
+import os
 
 
 class ShibbolethEvent(_LogEvent):
@@ -31,13 +33,13 @@ class ShibbolethLog(_LogFile):
     SKIP_MODULES = [
         'DEPRECATED',
         'java.lang.IllegalStateException',
+        'net.shibboleth.idp.authn.impl.FinalizeAuthentication',
         'net.shibboleth.idp.attribute.resolver.ad.impl.ContextDerivedAttributeDefinition',
         'net.shibboleth.idp.attribute.resolver.impl.AttributeResolverImpl',
         'net.shibboleth.idp.authn.AbstractUsernamePasswordCredentialValidator',
         'net.shibboleth.idp.authn.ExternalAuthenticationException',
         'net.shibboleth.idp.authn.impl.AttributeSourcedSubjectCanonicalization',
         'net.shibboleth.idp.authn.impl.FilterFlowsByForcedAuthn',
-        'net.shibboleth.idp.authn.impl.FinalizeAuthentication',
         'net.shibboleth.idp.authn.impl.SelectAuthenticationFlow',
         'net.shibboleth.idp.profile.impl.SelectProfileConfiguration',
         'net.shibboleth.idp.profile.impl.WebFlowMessageHandlerAdaptor',
@@ -141,23 +143,36 @@ class ShibbolethLog(_LogFile):
                 level=level,
                 type='Login',
                 user=login[1].lower(),
-                success=(login[2] == 'succeeded')
+                success=(login[2] == 'succeeded'),
             )
         if parse['module'] == 'Shibboleth-Audit.SSO':
             audit = parse['message'].split('|')
-            if self.requester is not None and audit[4] not in self.requester:
-                return None
-            return ShibbolethEvent(
-                ip_addr=ip_addr,
-                time=time,
-                level=level,
-                type='Attribute',
-                user=audit[3],
-                entity_id=audit[4],
-                attributes=audit[8],
-                browser=audit[20],
-                audit=audit
+            if self.events[-1].type == 'Login':
+                return ShibbolethEvent(
+                    ip_addr=ip_addr,
+                    time=time,
+                    level=level,
+                    type='Attribute',
+                    user=audit[3],
+                    entity_id=audit[4],
+                    attributes=audit[8],
+                    browser=audit[20],
+                    audit=audit,
+                    sso=False
             )
+            else:
+                return ShibbolethEvent(
+                    ip_addr=ip_addr,
+                    time=time,
+                    level=level,
+                    type='Attribute',
+                    user=audit[3],
+                    entity_id=audit[4],
+                    attributes=audit[8],
+                    browser=audit[20],
+                    audit=audit,
+                    sso=True
+                )
         print('Unknown log module:', parse['module'])
         return None
 
@@ -167,15 +182,89 @@ class ShibbolethLog(_LogFile):
         if parse['message'] == "Ignoring NameIDFormat metadata that includes the 'unspecified' format":
             return False
         return True
+    
+    def process_like_link(self, target):
+        if 'http' in target:
+            if 'www.' in target:
+                target = target.split('www.')[1]
+            else:
+                target = target.split("://")[1]
+            target = target.split('/')[0]
+            target_temp = target.split('.')
+            target = '.'.join(target_temp[:max(len(target_temp)-1, 0)])
+        return target
 
+    """
+    Takes in a string array representing an amount of requests from a user for a service and if output directory is present, 
+    writes them into a csv file. If output is not present, then prints. 
+    Parameters:
+        requests(string[]): will appear as user,#requests 
+        service(string): name of the service user is accessing, determines which file 
+        the requests might go into
+    Returns: None
+    """
+    def show_output(self, requests, service):
+        if self.output:
+            if self.sso:
+                sso_add = "sso_"
+            else:
+                sso_add = ""
+            if self.month:
+                csvfile = open(f"./{self.output}/{service}_" + sso_add + f"{self.month}.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",") 
+                for request in requests:
+                    log.writerow(request)
+                csvfile.close()
+            #special case for all_services
+            elif not service and self.output:
+                csvfile = open(f"./{self.output}/" + sso_add + "all_services.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",")
+                for request in requests:
+                    log.writerow(request)
+                csvfile.close() 
+            elif self.output: 
+                csvfile = open(f"./{self.output}/{service}_" + sso_add + "all.csv", 'w')
+                log = csv.writer(csvfile, delimiter = ",")
+                for request in requests:
+                    log.writerow(request)
+                csvfile.close() 
+            else:
+                for request in requests:
+                    print(request)
+    
     def command_scan(self):
         principal = self.principal is not None
         requester = self.requester is not None
+        month = self.month is not None
+        output = self.output is not None
+        sso = self.sso
         report = {}
         sites = Counter()
         total = 0
 
+        #ensure output folder already exists
+        #if it does, create a new folder with self.output as name is self.output exists
+        #if it doesn't and it's a month, quit program
+        #otherwise it's fine
+        #try:
+           # out = open(f"./{self.output}/all_services.csv", 'r')
+            #out.close()
+        try:
+            if not os.path.exists(os.path.join(os.getcwd(), self.output)):
+                if self.output:
+                    print("Output folder not present. Attempting to create...")
+                    output_file = os.path.join(os.getcwd(), self.output)
+                    os.mkdir(output_file)
+                    print("Creation successful.")
+                elif month:
+                    print("Month detected with no output specified. Please provide output directory with -o.")
+                    print("Quitting program...")
+                    return
+        except:
+            pass
+
         for event in self.events:
+                
             # Filter the events to the ones we care about.
             if event.type != "Attribute":
                 continue
@@ -183,38 +272,60 @@ class ShibbolethLog(_LogFile):
                 continue
             if requester and event.entity_id not in self.requester:
                 continue
-            total += 1
-
-            # Record what we want to keep track of.
-            if principal and requester:
+            if month and self.month not in str(event.time):
+                continue
+            #if sso isn't True, we don't care and count as normal. If it IS true, event.sso must be true as well
+            to_count = not sso or event.sso
+            test = not sso
+            if to_count:
+                total += 1
+            
+            # Record what we want to keep track of.  
+            #print("to_count is " + str(to_count) + " when sso is " + str(sso) + " and event.sso is " + str(event.sso))                     
+            if principal and requester and to_count:
                 # Both -n and -r: print the detail.
                 print(
                     f'{event.user:8s} - {event.ip_addr:15s} - {event.time.strftime("%Y-%m-%d %H:%M:%S")} - {event.entity_id}')
-            elif principal:
+            elif principal and to_count:
                 # Only -n: report how many times the user visits each site.
                 if event.user not in report:
                     report[event.user] = Counter()
                 report[event.user][event.entity_id] += 1
-            elif requester:
+            elif requester and to_count:
                 # Only -r: report how many times each user visits the site.
                 if event.entity_id not in report:
                     report[event.entity_id] = Counter()
                 report[event.entity_id][event.user] += 1
-            else:
-                # Neither -n nor -r: count visits to each site.
+            elif month and to_count:
+                #Only -m: report how many times each user visits each site in a certain month.
+                if event.entity_id not in report:
+                    report[event.entity_id] = Counter()
+                report[event.entity_id][event.user] += 1
+            elif to_count:
+                # Neither -n nor -r nor -m: count visits to each site.
                 sites[event.entity_id] += 1
 
+        
         # Output the results.
-        if principal or requester:
+        if principal or requester or month:
             for target in sorted(report.keys()):
+                #put output in logs 
+                service = self.process_like_link(target)
+                requests = []       
                 for item, count in sorted(report[target].items(), key=lambda x: x[1], reverse=True):
                     user = target
                     site = item
-                    if requester:
+                    if requester or month:
                         user = item
                         site = target
-                    print(f'{count:6d} - {user:8s} - {site}')
+                    if principal and not requester:
+                        requests.append(([f'{self.process_like_link(item)}', f'{count}']))
+                    else:
+                        requests.append(([f'{user}', f'{count}']))
+                self.show_output(requests, service)
         else:
+            requests = []
             for item, count in sorted(sites.items(), key=lambda x: x[1], reverse=True):
-                print(f'{count:6d} - {item}')
+                requests.append([f'{self.process_like_link(item)}', f'{count:6d}'])
+            self.show_output(requests, False)
         print(f'{total:6d}   Total')
