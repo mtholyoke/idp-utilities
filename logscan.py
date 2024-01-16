@@ -18,7 +18,7 @@ def scan(args):
         'requester': args.requester,
         'month' : args.month,
         'output' : args.output,
-        'sso' : args.sso
+        'sso' : args.sso,
     }
     log = ShibbolethLog(**kwargs)
     for filename in args.filename:
@@ -39,9 +39,9 @@ if __name__ == '__main__':
     argp.add_argument('-m', '--month', default=None, const=month_default, nargs='?',
                       help='Restrict to this month and list service providers and usernames')
     argp.add_argument('-o', '--output', default=None, nargs='?',
-                      help='Create logs of results in this output directory.')
+                      help='Create logs of results in this output directory')
     argp.add_argument('-s', '--sso', action='store_true',
-                      help='Determine if SSO was used within restrictions.')
+                      help='Determine if SSO was used within restrictions')
 
     args = argp.parse_args()
     scan(args)
