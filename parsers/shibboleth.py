@@ -237,10 +237,12 @@ class ShibbolethLog(_LogFile):
         requester = self.requester is not None
         month = self.month is not None
         output = self.output is not None
+        daily = self.daily
         sso = self.sso
         report = {}
         sites = Counter()
         total = 0
+        users = []
 
         #ensure output folder already exists
         #if it does, create a new folder with self.output as name is self.output exists
@@ -293,9 +295,17 @@ class ShibbolethLog(_LogFile):
                 report[event.user][event.entity_id] += 1
             elif requester and to_count:
                 # Only -r: report how many times each user visits the site.
-                if event.entity_id not in report:
-                    report[event.entity_id] = Counter()
-                report[event.entity_id][event.user] += 1
+                if daily:
+                    date = event.time.strftime('%Y-%m-%d')
+                    if date not in report:
+                        report[date] = Counter()
+                    report[date][event.user] += 1
+                    if event.user not in users:
+                        users.append(event.user)
+                else:
+                    if event.entity_id not in report:
+                        report[event.entity_id] = Counter()
+                    report[event.entity_id][event.user] += 1
             elif month and to_count:
                 #Only -m: report how many times each user visits each site in a certain month.
                 if event.entity_id not in report:
@@ -307,7 +317,21 @@ class ShibbolethLog(_LogFile):
 
         
         # Output the results.
-        if principal or requester or month:
+        if daily:
+            requests = []
+            dates = sorted(report.keys())
+            for user in sorted(users):
+                line = [user]
+                for date in dates:
+                    if user in report[date]:
+                        line.append(report[date][user])
+                    else:
+                        line.append('')
+                requests.append(line)
+            dates.insert(0, '')
+            requests.insert(0, dates)
+            self.show_output(requests, False)
+        elif principal or requester or month:
             for target in sorted(report.keys()):
                 #put output in logs 
                 service = self.process_like_link(target)

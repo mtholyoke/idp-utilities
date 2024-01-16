@@ -3,6 +3,7 @@
 from argparse import ArgumentParser
 from parsers import ShibbolethLog
 import datetime as dt
+import re
 
 today = dt.date.today()
 first = today.replace(day=1)
@@ -16,6 +17,7 @@ def scan(args):
     kwargs = {
         'principal': args.principal,
         'requester': args.requester,
+        'daily' : args.daily,
         'month' : args.month,
         'output' : args.output,
         'sso' : args.sso,
@@ -36,8 +38,10 @@ if __name__ == '__main__':
                       help='Restrict to this username and list service providers')
     argp.add_argument('-r', '--requester', default=None, nargs='+',
                       help='Restrict to this service provider and list usernames')
-    argp.add_argument('-m', '--month', default=None, const=month_default, nargs='?',
-                      help='Restrict to this month and list service providers and usernames')
+    argp.add_argument('-d', '--daily', action='store_true',
+                      help='Provide daily output as CSV')
+    # argp.add_argument('-m', '--month', default=None, const=month_default, nargs='?',
+    #                   help='Restrict to this month and list service providers and usernames')
     argp.add_argument('-o', '--output', default=None, nargs='?',
                       help='Create logs of results in this output directory')
     argp.add_argument('-s', '--sso', action='store_true',
