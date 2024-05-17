@@ -82,3 +82,18 @@ To get every SP that has used this IdP for authentication over the entire `logs/
 ### Previous functionality of `logscan.py`
 
 The subcommand `loop`, which scanned webserver logs for the looping behavior we saw in late 2020, was removed in commit #bf21dda, which left subcommand `sp` as the only operation. It was simplified to remove the IdP version option in commit #0a61bde, and then removed as a subcommand in commit #6beab69. A final round of code cleanup in commit #b8250c8 renamed the script from `logcheck.py` and removed a few more remnants of the old code.
+
+
+
+## `loop-checker.py`
+
+This script scans one or more `access.log` files to see details about:
+  - Which IP/user agent pairs are experiencing login loops
+  - Which IPs appear with multiple user agent strings
+  
+
+### Filenames
+
+For now, the default file is the one in this repository. More properly, it would default to analyzing the current (live) log file, as it would be named on the idpv4 servers. Use `-f` to specify a different filename.
+
+Multiple filenames are allowed (separate by spaces), wildcards are allowed, and filenames that end in `.gz` can be processed without unzipping them.

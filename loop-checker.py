@@ -1,8 +1,17 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
 from parsers import WebserverLog
 
-def scan():
+# Load each log to scan
+def scan(args):
     log = WebserverLog()
-    log.load('access.2021-02-01.log')
+    for filename in args.filename:
+        log.load(filename)
+        scanLog(log)
+
+# Scan a specific log
+def scanLog(log):
     log.command_loops()
 
     # Create a dictionary to track devices by IP address and user agent
@@ -32,8 +41,13 @@ def scan():
             for timecode, loop_events in loops.items():
                 print(
                     f'Loop detected from {ip_addr:15s} {user_agent:40s} {timecode} - {len(loop_events):4d} - {loop_events[0]}\n')
-if __name__ == "__main__":
-    scan()
 
-# git add filename
-# git commit -m "reason"
+if __name__ == "__main__":
+    argp = ArgumentParser(
+        epilog='')
+    argp.add_argument('-f', '--filename', type=str, nargs='*',
+                      default=['access.2021-02-01.log'],
+                      help='Log filename(s) to process, accepts wildcards')
+
+    args = argp.parse_args()
+    scan(args)
