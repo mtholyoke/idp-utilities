@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import re
 from collections import Counter
 from datetime import datetime
 from ._logfile import _LogEvent, _LogFile
 import csv
 import os
+import re
+import sys
 
 
 class ShibbolethEvent(_LogEvent):
@@ -36,6 +37,56 @@ class ShibbolethLog(_LogFile):
     #     find_sequences(self, index_attr='ip_addr')
     #     import_log(self, logfile)
     #     load(self, filename)
+
+    def __init__(self, filename='', **kwargs):
+        super().__init__
+        self.principals = {}
+        self.requesters = {}
+
+    # TODO: add SSO back in
+    def new_command_scan(self):
+        # Figure out what we’re counting and how to count it.
+        dash_n = self.principal is not None
+        dash_r = self.requester is not None
+
+        if not dash_n and not dash_r:
+            action = 'count_both'
+        elif dash_n and not dash_r:
+            action = 'count_requester'
+        elif dash_r and not dash_n:
+            action = 'count_principal'
+        else:
+            action = 'output_entry'
+
+        self.count = getattr(self, action)
+
+        # Actually run the counts.
+        for event in self.events:
+            if event.type != "Attribute":
+                continue
+            self.count(event)
+
+        # Output the results if we haven’t already
+        if not dash_r:
+            self.output_data('requesters')
+        if not dash_n:
+            self.output_data('principals')
+
+    def count_both(self, e):
+        self.count_principal(event)
+        self.count_requester(event)
+
+    def count_principal(self, e):
+        if e['user'] not in self.principals:
+            self.principals[e['user']] = Counter()
+        e_date = e['time'].strftime('%Y-%m-%d')
+        self.principals[e['user']][e_date] += 1
+
+    def count_requester(self, e):
+        if e['entity_id'] not in self.requesters:
+            self.requesters[e['entity_id']] = Counter()
+        e_date = e['time'].strftime('%Y-%m-%d')
+        self.requesters[e['entity_id']][e_date] += 1
 
     def make_event(self, parse):
         ip_addr = parse['ip_addr']
@@ -80,10 +131,22 @@ class ShibbolethLog(_LogFile):
         # print('Unknown log module:', parse['module'])
         return None
 
-    def validate_line(self, parse):
-        if parse['message'] == "Ignoring NameIDFormat metadata that includes the 'unspecified' format":
-            return False
-        return True
+    def output_data(subject):
+        f = sys.stdout
+        if self.output:
+            f = open(os.path.join(self.output, subject + '.csv'), "w")
+        data = getattr(self, subject)
+        if self.daily:
+            # TODO: Do the thing!
+        else:
+            # TODO: Do the simpler thing!
+
+    def output_entry(self, e):
+        f = sys.stdout
+        if self.output:
+            f = open(os.path.join(self.output, 'entries.log'), "w")
+        time = e.time.strftime('%Y-%m-%d %H:%M:%S')
+        print(f"{time} {e.ip_addr:15s} {e.user:12s} {e.entity_id}", file=f)
 
     def process_like_link(self, target):
         if 'http' in target:
@@ -95,6 +158,11 @@ class ShibbolethLog(_LogFile):
             target_temp = target.split('.')
             target = '.'.join(target_temp[:max(len(target_temp)-1, 0)])
         return target
+
+    def validate_line(self, parse):
+        if parse['message'] == "Ignoring NameIDFormat metadata that includes the 'unspecified' format":
+            return False
+        return True
 
     """
     Takes in a string array representing an amount of requests from a user for a service and if output directory is present,

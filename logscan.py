@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 from parsers import ShibbolethLog
-import datetime as dt
+import os
 
 
 def help(args):
@@ -22,6 +22,16 @@ def scan(args):
     for filename in args.filename:
         log.load(filename)
     log.command_scan()
+
+
+def main(args):
+    if args.output:
+        # If we specified an output directory, make sure it exists.
+        output_dir = os.path.join(os.getcwd(), args.output)
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        args.output = output_dir
+    scan(**args)
 
 
 if __name__ == '__main__':
@@ -73,4 +83,4 @@ if __name__ == '__main__':
         help='Log filename(s) to process, accepts wildcards')
 
     args = argp.parse_args()
-    scan(args)
+    main(args)
