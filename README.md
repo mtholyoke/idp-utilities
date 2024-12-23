@@ -59,15 +59,15 @@ This script scans one or more `idp-process.log` files to see details about which
 
 ### Filenames
 
-In both cases, the default file to analyze is the current (live) log file, as it would be named on the idpv4 servers: `/var/log/tomcat9/access.log` and `/opt/shibboleth-idp/logs/idp-process.log`. Use `-f` to specify a different filename.
+The default file to analyze is the current (live) log file, as it would be named on the IdP v4 or IdP v5 server: `/opt/shibboleth-idp/logs/idp-process.log`. Use `-f` to specify a different filename.
 
 Multiple filenames are allowed (separate by spaces), wildcards are allowed, and filenames that end in `.gz` can be processed without unzipping them.
 
 **Example**
 
-To get every SP that has used this IdP for authentication over the entire `logs/` directory:
+To get every user and service provider that has used this IdP for authentication over the entire `logs/` directory:
 ```bash
-./logscan.py sp -f /opt/shibboleth-idp/logs/idp-process*
+./logscan.py -f /opt/shibboleth-idp/logs/idp-process*
 ```
 
 ### Options
