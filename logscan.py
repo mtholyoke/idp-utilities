@@ -16,7 +16,6 @@ def scan(args):
         # 'sso': args.sso,
         'daily': args.daily,
         'output': args.output,
-        # 'month': args.month,
     }
     log = ShibbolethLog(**kwargs)
     for filename in args.filename:
@@ -71,12 +70,6 @@ if __name__ == '__main__':
     #     help='Provide verbose output')
 
     targets = argp.add_argument_group('Which log files to scan')
-    # today = dt.date.today()
-    # last_month = today.replace(day=1) - dt.timedelta(days=1)
-    # month_default = last_month.strftime("%Y-%m")
-    # targets.add_argument(
-    #     '-m', '--month', default=None, const=month_default, nargs='?',
-    #     help='Use all log files from a specific month')
     targets.add_argument(
         '-f', '--filename', type=str, nargs='*',
         default=['/opt/shibboleth-idp/logs/idp-process.log'],
