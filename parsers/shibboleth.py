@@ -56,22 +56,19 @@ class ShibbolethLog(_LogFile):
     # TODO: add SSO back in
     def command_scan(self):
         # Figure out what we’re counting and how to count it.
-        if self.daily:
-            action = getattr(self, 'count_daily')
-        else:
-            action = getattr(self, 'count_event')
-
         dash_n = self.principal is not None
         dash_r = self.requester is not None
 
         if not dash_n and not dash_r:
-            count = lambda e: action('principal', e) and action('requester', e)
+            action = 'count_both'
         elif dash_n and not dash_r:
-            count = lambda e: action('requester', e)
+            action = 'count_requester'
         elif dash_r and not dash_n:
-            count = lambda e: action('principal', e)
+            action = 'count_principal'
         else:
-            count = lambda e: output_entry(e)
+            action = 'output_entry'
+
+        count = getattr(self, action)
 
         # Actually run the counts.
         for event in self.events:
@@ -85,19 +82,35 @@ class ShibbolethLog(_LogFile):
         if not dash_n:
             self.output_data('principals')
 
-    def count_daily(self, subject, e):
+    def count_both(self, event):
+        count_event('principal', event)
+        count_event('requester', event)
+
+    def count_daily(self, subject, event):
         store = getattr(self, f"{subject}s")
-        datum = getattr(e, self.KEY_MAPPING[subject])
+        datum = getattr(event, self.KEY_MAPPING[subject])
         if datum not in store:
             store[datum] = Counter()
-        e_date = e['time'].strftime('%Y-%m-%d')
+        e_date = event['time'].strftime('%Y-%m-%d')
         store[datum][e_date] += 1
         self.dates[e_date] += 1
 
-    def count_event(self, subject, e):
+    def count_event(self, subject, event):
         store = getattr(self, f"{subject}s")
-        datum = getattr(e, self.KEY_MAPPING[subject])
+        datum = getattr(event, self.KEY_MAPPING[subject])
         store[datum] += 1
+
+    def count_principal(self, event):
+        if self.daily:
+            count_daily('principal', event)
+        else:
+            count_event('principal', event)
+
+    def count_requester(self, event):
+        if self.daily:
+            count_daily('requester', event)
+        else:
+            count_event('requester', event)
 
     def make_event(self, parse):
         ip_addr = parse['ip_addr']
@@ -143,7 +156,7 @@ class ShibbolethLog(_LogFile):
         return None
 
     def output_daily(self, data, f):
-        writer = csv.writer(f, delimiter = ",")
+        writer = csv.writer(f, delimiter=",")
         dates = sorted(self.dates.keys())
         writer.writerow(['user'].extend(dates))
         for user in sorted(data.keys()):
@@ -173,7 +186,7 @@ class ShibbolethLog(_LogFile):
         print(f"{time} {e.ip_addr:15s} {e.user:12s} {e.entity_id}", file=f)
 
     def output_simple(self, data, f):
-        writer = csv.writer(f, delimiter = ",")
+        writer = csv.writer(f, delimiter=",")
         for row in sorted(data.items(), key=lambda x: x[1], reverse=True):
             writer.writerow(row)
 
