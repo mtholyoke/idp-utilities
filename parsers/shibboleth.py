@@ -44,7 +44,7 @@ class ShibbolethLog(_LogFile):
     #     load(self, filename)
 
     def __init__(self, filename='', **kwargs):
-        super().__init__
+        super().__init__(filename=filename, **kwargs)
         if self.daily:
             self.dates = Counter()
             self.principals = {}
@@ -65,7 +65,7 @@ class ShibbolethLog(_LogFile):
         dash_r = self.requester is not None
 
         if not dash_n and not dash_r:
-            count = lambda e: action('principal', e) && action('requester', e)
+            count = lambda e: action('principal', e) and action('requester', e)
         elif dash_n and not dash_r:
             count = lambda e: action('requester', e)
         elif dash_r and not dash_n:
@@ -85,18 +85,18 @@ class ShibbolethLog(_LogFile):
         if not dash_n:
             self.output_data('principals')
 
-    def count_daily(self, subject, e)
+    def count_daily(self, subject, e):
         store = getattr(self, f"{subject}s")
-        datum = e[self.KEY_MAPPING[subject]]
+        datum = getattr(e, self.KEY_MAPPING[subject])
         if datum not in store:
             store[datum] = Counter()
         e_date = e['time'].strftime('%Y-%m-%d')
         store[datum][e_date] += 1
         self.dates[e_date] += 1
 
-    def count_event(self, subject, e)
+    def count_event(self, subject, e):
         store = getattr(self, f"{subject}s")
-        datum = e[self.KEY_MAPPING[subject]]
+        datum = getattr(e, self.KEY_MAPPING[subject])
         store[datum] += 1
 
     def make_event(self, parse):
@@ -142,7 +142,7 @@ class ShibbolethLog(_LogFile):
         # print('Unknown log module:', parse['module'])
         return None
 
-    def output_daily(data, f):
+    def output_daily(self, data, f):
         writer = csv.writer(f, delimiter = ",")
         dates = sorted(self.dates.keys())
         writer.writerow(['user'].extend(dates))
@@ -155,7 +155,7 @@ class ShibbolethLog(_LogFile):
                     row.append(None)
             writer.writerow(row)
 
-    def output_data(subject):
+    def output_data(self, subject):
         f = sys.stdout
         if self.output:
             f = open(os.path.join(self.output, subject + '.csv'), 'w')

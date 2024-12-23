@@ -31,7 +31,7 @@ def main(args):
         if not os.path.exists(output_dir):
             os.mkdir(output_dir)
         args.output = output_dir
-    scan(**args)
+    scan(args)
 
 
 if __name__ == '__main__':
