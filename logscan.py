@@ -13,7 +13,7 @@ def scan(args):
     kwargs = {
         'principal': args.principal,
         'requester': args.requester,
-        'sso': args.sso,
+        # 'sso': args.sso,
         'daily': args.daily,
         'output': args.output,
         'month': None,
@@ -54,15 +54,15 @@ if __name__ == '__main__':
     subject.add_argument(
         '-r', '--requester', default=None, nargs='+',
         help='Limit scan to the service provider(s) provided')
-    subject.add_argument(
-        '-s', '--sso', action='store_true',
-        help='Determine if SSO was used within above limits')
+    # subject.add_argument(
+    #     '-s', '--sso', action='store_true',
+    #     help='Determine if SSO was used within above limits')
 
     output = argp.add_argument_group('Output options')
     # TODO: -d needs exactly one of -n or -r.
     output.add_argument(
         '-d', '--daily', action='store_true',
-        help='Provide daily output as CSV')
+        help='Provide daily usage as CSV for exactly one of -n or -r')
     output.add_argument(
         '-o', '--output', default=None, nargs='?',
         help='Create logs of results in this output directory')
@@ -83,4 +83,10 @@ if __name__ == '__main__':
         help='Log filename(s) to process, accepts wildcards')
 
     args = argp.parse_args()
+    if args.daily:
+        if ((args.principal and args.requester)
+            or (not args.principal and not args.requester)):
+            print('The -d/--daily option requires exactly one of -n/--principal or -r/--requester')
+            exit(1)
+
     main(args)

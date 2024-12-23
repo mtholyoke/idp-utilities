@@ -83,15 +83,15 @@ class ShibbolethLog(_LogFile):
             self.output_data('principals')
 
     def count_both(self, event):
-        count_event('principal', event)
-        count_event('requester', event)
+        self.count_event('principal', event)
+        self.count_event('requester', event)
 
     def count_daily(self, subject, event):
         store = getattr(self, f"{subject}s")
         datum = getattr(event, self.KEY_MAPPING[subject])
         if datum not in store:
             store[datum] = Counter()
-        e_date = event['time'].strftime('%Y-%m-%d')
+        e_date = event.time.strftime('%Y-%m-%d')
         store[datum][e_date] += 1
         self.dates[e_date] += 1
 
@@ -102,15 +102,15 @@ class ShibbolethLog(_LogFile):
 
     def count_principal(self, event):
         if self.daily:
-            count_daily('principal', event)
+            self.count_daily('principal', event)
         else:
-            count_event('principal', event)
+            self.count_event('principal', event)
 
     def count_requester(self, event):
         if self.daily:
-            count_daily('requester', event)
+            self.count_daily('requester', event)
         else:
-            count_event('requester', event)
+            self.count_event('requester', event)
 
     def make_event(self, parse):
         ip_addr = parse['ip_addr']
@@ -158,7 +158,7 @@ class ShibbolethLog(_LogFile):
     def output_daily(self, data, f):
         writer = csv.writer(f, delimiter=",")
         dates = sorted(self.dates.keys())
-        writer.writerow(['user'].extend(dates))
+        writer.writerow(['user'] + dates)
         for user in sorted(data.keys()):
             row = [user]
             for date in dates:
@@ -183,7 +183,7 @@ class ShibbolethLog(_LogFile):
         if self.output:
             f = open(os.path.join(self.output, 'entries.log'), 'w')
         time = e.time.strftime('%Y-%m-%d %H:%M:%S')
-        print(f"{time} {e.ip_addr:15s} {e.user:12s} {e.entity_id}", file=f)
+        print(f"{time}  {e.ip_addr:15s}  {e.user:12s} {e.entity_id}", file=f)
 
     def output_simple(self, data, f):
         writer = csv.writer(f, delimiter=",")
