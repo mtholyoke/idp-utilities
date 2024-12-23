@@ -5,6 +5,7 @@ from datetime import datetime
 from urllib.parse import parse_qs
 from ._logfile import _LogEvent, _LogSequence, _LogFile
 
+# Could possibly use logger from loguru to replace regex architecture
 
 class WebserverEvent(_LogEvent):
     # Inherited methods:
@@ -23,11 +24,11 @@ class WebserverSequence(_LogSequence):
     #     last_time(self)
     #     limit_time(self)
 
-    def detect_loops(self, constraints={}):
+    def detect_loops(self, constraints={}, time_threshold_seconds=5):
         # TODO: allow regex patterns as constraints
-        previous = None
-        timecode = None
+        previous_events = {}  # Dictionary to store previous events for each IP address
         loops = {}
+
         for event in self.events:
             # Filter based on constraints
             eligible = True
@@ -36,13 +37,31 @@ class WebserverSequence(_LogSequence):
                     eligible = False
             if not eligible:
                 continue
-            if str(event) == str(previous):
-                if timecode not in loops:
-                    loops[timecode] = [previous]
-                loops[timecode].append(event)
-            else:
-                previous = event
-                timecode = event.time.strftime("%Y-%m-%d %H:%M:%S")
+
+            # Exclude specific patterns like "Stale request" errors
+            if "Stale request" in event.request:  # Will have to be adapted to correct Stale request format
+                continue
+
+            # Define an identifier for the event: IP address
+            identifier = event.ip_addr
+
+            # Check if this IP address has seen a previous event
+            if identifier in previous_events:
+                prev_event = previous_events[identifier]
+
+                # Calculate the time difference between events
+                time_difference = (event.time - prev_event.time).total_seconds()
+
+                # Check if the time difference is within the specified time threshold
+                if time_difference <= time_threshold_seconds:
+                    # Events are within the time threshold, consider them part of the same loop
+                    if identifier not in loops:
+                        loops[identifier] = []
+                    loops[identifier].append(prev_event)
+                    loops[identifier].append(event)
+
+            previous_events[identifier] = event  # Update the previous event for this identifier
+
         return loops
 
 
@@ -122,6 +141,7 @@ class WebserverLog(_LogFile):
             # 'bytes': 3972,
         }
         self.find_sequences(index_attr='id')
+
         for id in self.sequences:
             for sequence in self.sequences[id]:
                 ip_addr = sequence.events[0].ip_addr
