@@ -16,7 +16,7 @@ def scan(args):
         # 'sso': args.sso,
         'daily': args.daily,
         'output': args.output,
-        'month': None,
+        # 'month': args.month,
     }
     log = ShibbolethLog(**kwargs)
     for filename in args.filename:
