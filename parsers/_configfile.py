@@ -62,7 +62,7 @@ class _ConfigFile(object):
     def translate_config(self):
         path_fields = ['metadata-require', 'metadata-ignore']
         for field in path_fields:
-            if self.config[field]:
+            if field in self.config:
                 paths = self.config[field]
                 if isinstance(paths, str):
                     paths = [paths]

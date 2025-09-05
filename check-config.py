@@ -8,6 +8,7 @@ from parsers import (
     ServicesConfig
 )
 from pathlib import Path
+import socket
 import subprocess
 import yaml
 
@@ -25,8 +26,14 @@ def get_config(args):
         config['properties']['idp.home'] = str(config['shibboleth-root'])
     if 'metadata-require' not in config:
         config['metadata-require'] = ['%{idp.home}/metadata/idp-metadata.xml']
+    if 'metadata-ignore' not in config:
+        config['metadata-ignore'] = []
     if 'xmllint' not in config:
         config['xmllint'] = '/usr/bin/xmllint'
+    if 'hostname' not in config:
+        config['hostname'] = socket.gethostbyaddr(socket.gethostname())[0]
+    if 'test-sp' not in config:
+        config['test-sp'] = 'test'
     return config
 
 
