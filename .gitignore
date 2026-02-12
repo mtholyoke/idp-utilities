@@ -1,3 +1,4 @@
+.DS_Store
 config.yml
 *.pyc
 __pycache__

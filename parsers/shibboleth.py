@@ -122,7 +122,6 @@ class ShibbolethLog(_LogFile):
         if parse['module'].endswith('LDAPCredentialValidator'):
             login = re.match(self.LOGIN_REGEX, parse['message'])
             if login is None:
-                print('ERROR: can’t parse message', parse.string)
                 return None
             if self.principal and login[1].lower() not in self.principal:
                 return None
