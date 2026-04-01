@@ -33,7 +33,7 @@ class ShibbolethLog(_LogFile):
     # Regex match groups:
     #     1: Username
     #     2: Status: one of 'succeeded', 'failed', 'produced exception'
-    LOGIN_REGEX = r"^Credential Validator ldap: Login by '?(.*?)'? (.*)$"
+    LOGIN_REGEX = r"^Credential Validator (?:.*?): Login by '?(.*?)'? (.*)$"
 
     # Inherited variable:
     #     SEQUENCE_CLASS = _LogSequence
@@ -119,7 +119,7 @@ class ShibbolethLog(_LogFile):
         time = datetime.strptime(timestamp, '%Y-%m-%d %H:%M:%S,%f')
         level = parse['level']
 
-        if parse['module'].endswith('LDAPCredentialValidator'):
+        if parse['module'].endswith('CredentialValidator'):
             login = re.match(self.LOGIN_REGEX, parse['message'])
             if login is None:
                 return None
