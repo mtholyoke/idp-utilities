@@ -28,7 +28,9 @@ def format_easy(input=''):
         output.append(f'{key:{max_length}} = {attrib_dict[key]}')
     return "\n".join(output)
 
-def set_defaults(config={}):
+def set_defaults(config):
+    if config is None:
+        config = {}
     if 'hostname' not in config:
         config['hostname'] = socket.getfqdn()
     return config
