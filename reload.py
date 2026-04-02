@@ -32,6 +32,9 @@ if __name__ == '__main__':
     ap.add_argument('-m', '--metadata-resolver', action='append_const',
                     const='MetadataResolverService', dest='services',
                     help='Load changes from conf/metadata-providers.xml')
+    ap.add_argument('-r', '--relying-party-resolver', action='append_const',
+                    const='RelyingPartyResolverService', dest='services',
+                    help='Load changes from conf/relying-party.xml')
     args = ap.parse_args()
     if args.services is None:
         ap.print_help()
