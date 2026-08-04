@@ -26,6 +26,9 @@ if __name__ == '__main__':
     ap.add_argument('-a', '--attribute-resolver', action='append_const',
                     const='AttributeResolverService', dest='services',
                     help='Load changes from conf/attribute-resolver.xml')
+    ap.add_argument('-c', '--client-information', action='append_const',
+                    const='ClientInformationResolverService', dest='services',
+                    help='Load changes from metadata/oidc-client.json')
     ap.add_argument('-f', '--attribute-filter', action='append_const',
                     const='AttributeFilterService', dest='services',
                     help='Load changes from conf/attribute-filter.xml')
